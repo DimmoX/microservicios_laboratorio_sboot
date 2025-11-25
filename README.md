@@ -1103,8 +1103,8 @@ sql usuario/password@databasefullstack3_high
 ```
 
 **Usuario creado:**
-- Email: `admin@laboratorio.cl`
-- Password: `Admin123`
+- Email: `admin@laboratorioandino.cl`
+- Password: `admin123`
 - Role: `ADMIN`
 
 ### Paso 3: Configurar Wallets y Properties
