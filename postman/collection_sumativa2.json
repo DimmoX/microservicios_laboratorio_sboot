@@ -1,0 +1,413 @@
+{
+  "info": {
+    "name": "Microservicios-Labs-Users",
+    "_postman_id": "2b2a5a4d-0001-4f9b-9b00-aaaa0000abcd",
+    "description": "Colección para ms_gestion_users y ms_gestion_labs con JWT, CRUDs y ejemplos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url_users", "value": "http://localhost:8081" },
+    { "key": "base_url_labs", "value": "http://localhost:8082" },
+    { "key": "jwt", "value": "" },
+    { "key": "userId", "value": "1" },
+    { "key": "pacienteId", "value": "1" },
+    { "key": "empleadoId", "value": "1" },
+    { "key": "labId", "value": "1" },
+    { "key": "examId", "value": "1" },
+    { "key": "agendaId", "value": "1" },
+    { "key": "resultadoId", "value": "1" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{jwt}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth (ms_gestion_users)",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_users}}/auth/login", "host": ["{{base_url_users}}"], "path": ["auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"felipe.munoz@laboratorioandino.cl\",\n  \"password\": \"12345\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.code === 200);",
+                  "const data = pm.response.json();",
+                  "pm.expect(data).to.have.property('token');",
+                  "pm.collectionVariables.set('jwt', data.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users (ms_gestion_users)",
+      "item": [
+        {
+          "name": "Listar usuarios",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url_users}}/users", "host": ["{{base_url_users}}"], "path": ["users"] }
+          }
+        },
+        {
+          "name": "Obtener usuario por ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url_users}}/users/{{userId}}", "host": ["{{base_url_users}}"], "path": ["users", "{{userId}}"] }
+          }
+        },
+        {
+          "name": "Crear usuario",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_users}}/users", "host": ["{{base_url_users}}"], "path": ["users"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"nuevo.usuario@dominio.cl\",\n  \"password\": \"12345\",\n  \"role\": \"PATIENT\",\n  \"estado\": \"ACTIVO\",\n  \"pacienteId\": 1,\n  \"empleadoId\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar usuario",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_users}}/users/{{userId}}", "host": ["{{base_url_users}}"], "path": ["users", "{{userId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"nuevo.usuario@dominio.cl\",\n  \"password\": \"12345\",\n  \"role\": \"PATIENT\",\n  \"estado\": \"ACTIVO\",\n  \"pacienteId\": 1,\n  \"empleadoId\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Eliminar usuario",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url_users}}/users/{{userId}}", "host": ["{{base_url_users}}"], "path": ["users", "{{userId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pacientes (ms_gestion_users)",
+      "item": [
+        {
+          "name": "Listar pacientes",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_users}}/pacientes", "host": ["{{base_url_users}}"], "path": ["pacientes"] } }
+        },
+        {
+          "name": "Obtener paciente por ID",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_users}}/pacientes/{{pacienteId}}", "host": ["{{base_url_users}}"], "path": ["pacientes", "{{pacienteId}}"] } }
+        },
+        {
+          "name": "Crear paciente",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_users}}/pacientes", "host": ["{{base_url_users}}"], "path": ["pacientes"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pnombre\": \"Camila\",\n  \"snombre\": \"Andrea\",\n  \"papellido\": \"Rojas\",\n  \"sapellido\": \"Díaz\",\n  \"rut\": \"17345678-5\",\n  \"dirId\": 4,\n  \"contactoId\": 4\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar paciente",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_users}}/pacientes/{{pacienteId}}", "host": ["{{base_url_users}}"], "path": ["pacientes", "{{pacienteId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pnombre\": \"Camila\",\n  \"snombre\": \"Andrea\",\n  \"papellido\": \"Rojas\",\n  \"sapellido\": \"Díaz\",\n  \"rut\": \"17345678-5\",\n  \"dirId\": 4,\n  \"contactoId\": 4\n}"
+            }
+          }
+        },
+        {
+          "name": "Eliminar paciente",
+          "request": { "method": "DELETE", "url": { "raw": "{{base_url_users}}/pacientes/{{pacienteId}}", "host": ["{{base_url_users}}"], "path": ["pacientes", "{{pacienteId}}"] } }
+        }
+      ]
+    },
+    {
+      "name": "Empleados (ms_gestion_users)",
+      "item": [
+        {
+          "name": "Listar empleados",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_users}}/empleados", "host": ["{{base_url_users}}"], "path": ["empleados"] } }
+        },
+        {
+          "name": "Obtener empleado por ID",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_users}}/empleados/{{empleadoId}}", "host": ["{{base_url_users}}"], "path": ["empleados", "{{empleadoId}}"] } }
+        },
+        {
+          "name": "Crear empleado",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_users}}/empleados", "host": ["{{base_url_users}}"], "path": ["empleados"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pnombre\": \"Felipe\",\n  \"snombre\": \"Ignacio\",\n  \"papellido\": \"Muñoz\",\n  \"sapellido\": \"Pérez\",\n  \"rut\": \"19567834-1\",\n  \"cargo\": \"Tecnólogo Médico\",\n  \"rol\": \"TM\",\n  \"dirId\": 7,\n  \"contactoId\": 7\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar empleado",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_users}}/empleados/{{empleadoId}}", "host": ["{{base_url_users}}"], "path": ["empleados", "{{empleadoId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pnombre\": \"Felipe\",\n  \"snombre\": \"Ignacio\",\n  \"papellido\": \"Muñoz\",\n  \"sapellido\": \"Pérez\",\n  \"rut\": \"19567834-1\",\n  \"cargo\": \"Tecnólogo Médico\",\n  \"rol\": \"TM\",\n  \"dirId\": 7,\n  \"contactoId\": 7\n}"
+            }
+          }
+        },
+        {
+          "name": "Eliminar empleado",
+          "request": { "method": "DELETE", "url": { "raw": "{{base_url_users}}/empleados/{{empleadoId}}", "host": ["{{base_url_users}}"], "path": ["empleados", "{{empleadoId}}"] } }
+        }
+      ]
+    },
+    {
+      "name": "Laboratorios (ms_gestion_labs)",
+      "item": [
+        {
+          "name": "Listar laboratorios",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_labs}}/labs", "host": ["{{base_url_labs}}"], "path": ["labs"] } }
+        },
+        {
+          "name": "Obtener laboratorio por ID",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_labs}}/labs/{{labId}}", "host": ["{{base_url_labs}}"], "path": ["labs", "{{labId}}"] } }
+        },
+        {
+          "name": "Crear laboratorio",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_labs}}/labs", "host": ["{{base_url_labs}}"], "path": ["labs"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Laboratorio Andino\",\n  \"tipo\": \"Privado\",\n  \"dirId\": 1,\n  \"contactoId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar laboratorio",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_labs}}/labs/{{labId}}", "host": ["{{base_url_labs}}"], "path": ["labs", "{{labId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Laboratorio Andino\",\n  \"tipo\": \"Privado\",\n  \"dirId\": 1,\n  \"contactoId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Eliminar laboratorio",
+          "request": { "method": "DELETE", "url": { "raw": "{{base_url_labs}}/labs/{{labId}}", "host": ["{{base_url_labs}}"], "path": ["labs", "{{labId}}"] } }
+        }
+      ]
+    },
+    {
+      "name": "Exámenes (ms_gestion_labs)",
+      "item": [
+        {
+          "name": "Listar exámenes",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_labs}}/exams", "host": ["{{base_url_labs}}"], "path": ["exams"] } }
+        },
+        {
+          "name": "Obtener examen por ID",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_labs}}/exams/{{examId}}", "host": ["{{base_url_labs}}"], "path": ["exams", "{{examId}}"] } }
+        },
+        {
+          "name": "Crear examen",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_labs}}/exams", "host": ["{{base_url_labs}}"], "path": ["exams"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"HEMO\",\n  \"nombre\": \"Hemograma completo\",\n  \"tipo\": \"Sangre\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar examen",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_labs}}/exams/{{examId}}", "host": ["{{base_url_labs}}"], "path": ["exams", "{{examId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"HEMO\",\n  \"nombre\": \"Hemograma completo\",\n  \"tipo\": \"Sangre\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Eliminar examen",
+          "request": { "method": "DELETE", "url": { "raw": "{{base_url_labs}}/exams/{{examId}}", "host": ["{{base_url_labs}}"], "path": ["exams", "{{examId}}"] } }
+        }
+      ]
+    },
+    {
+      "name": "Lab-Exam (precios) (ms_gestion_labs)",
+      "item": [
+        {
+          "name": "Listar todos",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_labs}}/lab-exam", "host": ["{{base_url_labs}}"], "path": ["lab-exam"] } }
+        },
+        {
+          "name": "Listar por laboratorio",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_labs}}/lab-exam/lab/{{labId}}", "host": ["{{base_url_labs}}"], "path": ["lab-exam", "lab", "{{labId}}"] } }
+        },
+        {
+          "name": "Listar por examen",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_labs}}/lab-exam/exam/{{examId}}", "host": ["{{base_url_labs}}"], "path": ["lab-exam", "exam", "{{examId}}"] } }
+        },
+        {
+          "name": "Obtener precio puntual (lab+exam)",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_labs}}/lab-exam/lab/{{labId}}/exam/{{examId}}", "host": ["{{base_url_labs}}"], "path": ["lab-exam", "lab", "{{labId}}", "exam", "{{examId}}"] } }
+        },
+        {
+          "name": "Upsert precio (POST con PK compuesta)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_labs}}/lab-exam", "host": ["{{base_url_labs}}"], "path": ["lab-exam"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": { \"idLaboratorio\": {{labId}}, \"idExamen\": {{examId}} },\n  \"precio\": 8500.00,\n  \"vigenteDesde\": \"2025-11-01\",\n  \"vigenteHasta\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar precio (PUT)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_labs}}/lab-exam/lab/{{labId}}/exam/{{examId}}", "host": ["{{base_url_labs}}"], "path": ["lab-exam", "lab", "{{labId}}", "exam", "{{examId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"precio\": 9000.00,\n  \"vigenteDesde\": \"2025-11-01\",\n  \"vigenteHasta\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Eliminar precio (DELETE)",
+          "request": { "method": "DELETE", "url": { "raw": "{{base_url_labs}}/lab-exam/lab/{{labId}}/exam/{{examId}}", "host": ["{{base_url_labs}}"], "path": ["lab-exam", "lab", "{{labId}}", "exam", "{{examId}}"] } }
+        }
+      ]
+    },
+    {
+      "name": "Agenda (ms_gestion_labs)",
+      "item": [
+        {
+          "name": "Listar agendas",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_labs}}/agenda", "host": ["{{base_url_labs}}"], "path": ["agenda"] } }
+        },
+        {
+          "name": "Obtener agenda por ID",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_labs}}/agenda/{{agendaId}}", "host": ["{{base_url_labs}}"], "path": ["agenda", "{{agendaId}}"] } }
+        },
+        {
+          "name": "Listar agendas por paciente",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_labs}}/agenda/paciente/{{pacienteId}}", "host": ["{{base_url_labs}}"], "path": ["agenda", "paciente", "{{pacienteId}}"] } }
+        },
+        {
+          "name": "Crear agenda",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_labs}}/agenda", "host": ["{{base_url_labs}}"], "path": ["agenda"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pacienteId\": {{pacienteId}},\n  \"labId\": {{labId}},\n  \"examenId\": {{examId}},\n  \"empleadoId\": {{empleadoId}},\n  \"fechaHora\": \"2025-11-10T10:00:00-03:00\",\n  \"estado\": \"PROGRAMADA\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar agenda",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_labs}}/agenda/{{agendaId}}", "host": ["{{base_url_labs}}"], "path": ["agenda", "{{agendaId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pacienteId\": {{pacienteId}},\n  \"labId\": {{labId}},\n  \"examenId\": {{examId}},\n  \"empleadoId\": {{empleadoId}},\n  \"fechaHora\": \"2025-11-10T11:00:00-03:00\",\n  \"estado\": \"ATENDIDA\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Eliminar agenda",
+          "request": { "method": "DELETE", "url": { "raw": "{{base_url_labs}}/agenda/{{agendaId}}", "host": ["{{base_url_labs}}"], "path": ["agenda", "{{agendaId}}"] } }
+        }
+      ]
+    },
+    {
+      "name": "Resultados (ms_gestion_labs)",
+      "item": [
+        {
+          "name": "Listar resultados",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_labs}}/resultados", "host": ["{{base_url_labs}}"], "path": ["resultados"] } }
+        },
+        {
+          "name": "Obtener resultado por ID",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_labs}}/resultados/{{resultadoId}}", "host": ["{{base_url_labs}}"], "path": ["resultados", "{{resultadoId}}"] } }
+        },
+        {
+          "name": "Listar resultados por paciente",
+          "request": { "method": "GET", "url": { "raw": "{{base_url_labs}}/resultados/paciente/{{pacienteId}}", "host": ["{{base_url_labs}}"], "path": ["resultados", "paciente", "{{pacienteId}}"] } }
+        },
+        {
+          "name": "Crear resultado",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_labs}}/resultados", "host": ["{{base_url_labs}}"], "path": ["resultados"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agendaId\": {{agendaId}},\n  \"pacienteId\": {{pacienteId}},\n  \"labId\": {{labId}},\n  \"examenId\": {{examId}},\n  \"empleadoId\": {{empleadoId}},\n  \"fechaMuestra\": \"2025-11-10T10:05:00-03:00\",\n  \"fechaResultado\": null,\n  \"valor\": \"13.5\",\n  \"unidad\": \"g/dL\",\n  \"observacion\": \"Dentro de rango normal\",\n  \"estado\": \"EMITIDO\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar resultado",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url_labs}}/resultados/{{resultadoId}}", "host": ["{{base_url_labs}}"], "path": ["resultados", "{{resultadoId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agendaId\": {{agendaId}},\n  \"pacienteId\": {{pacienteId}},\n  \"labId\": {{labId}},\n  \"examenId\": {{examId}},\n  \"empleadoId\": {{empleadoId}},\n  \"fechaMuestra\": \"2025-11-10T10:05:00-03:00\",\n  \"fechaResultado\": \"2025-11-10T10:30:00-03:00\",\n  \"valor\": \"13.7\",\n  \"unidad\": \"g/dL\",\n  \"observacion\": \"Ligera variación\",\n  \"estado\": \"EMITIDO\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Eliminar resultado",
+          "request": { "method": "DELETE", "url": { "raw": "{{base_url_labs}}/resultados/{{resultadoId}}", "host": ["{{base_url_labs}}"], "path": ["resultados", "{{resultadoId}}"] } }
+        }
+      ]
+    }
+  ]
+}
