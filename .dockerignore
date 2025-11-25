@@ -1,0 +1,45 @@
+# Backend - Spring Boot files to exclude
+ms_gestion_labs/target/
+ms_gestion_labs/.mvn/
+ms_gestion_users/target/
+ms_gestion_users/.mvn/
+ms_api_gateway/target/
+ms_api_gateway/.mvn/
+*.log
+
+# Frontend - Angular files to exclude
+frontend_gestion_labs/node_modules/
+frontend_gestion_labs/dist/
+frontend_gestion_labs/.angular/
+frontend_gestion_labs/coverage/
+frontend_gestion_labs/.vscode/
+frontend_gestion_labs/.idea/
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.bak
+*.tmp
+*.DS_Store
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Documentation (opcional, depende si quieres incluirlo)
+# README*.md
+# *.pdf
+
+# Otros
+.env
+.env.local
+*.zip
+*.tar.gz

@@ -1,0 +1,83 @@
+<!-- View: Formulario de laboratorio -->
+<div class="form-container">
+  <h2>{{ isEditMode ? '✏️ Editar Laboratorio' : '➕ Nuevo Laboratorio' }}</h2>
+  
+  <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+  
+  <form (ngSubmit)="guardarLaboratorio()" #labForm="ngForm" class="card">
+    <h3>Información del Laboratorio</h3>
+    
+    <div class="form-group">
+      <label for="nombre">Nombre *</label>
+      <input type="text" id="nombre" name="nombre" [(ngModel)]="laboratorio.nombre" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="tipo">Tipo *</label>
+      <select id="tipo" name="tipo" [(ngModel)]="laboratorio.tipo" required>
+        <option value="">Seleccione...</option>
+        <option value="Privado">Privado</option>
+        <option value="Clínica">Clínica</option>
+        <option value="Centro">Centro</option>
+        <option value="Hospital">Hospital</option>
+      </select>
+    </div>
+    
+    <h3>Dirección</h3>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label for="calle">Calle *</label>
+        <input type="text" id="calle" name="calle" [(ngModel)]="laboratorio.direccion!.calle" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="numero">Número *</label>
+        <input type="number" id="numero" name="numero" [(ngModel)]="laboratorio.direccion!.numero" required>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label for="ciudad">Ciudad *</label>
+        <input type="text" id="ciudad" name="ciudad" [(ngModel)]="laboratorio.direccion!.ciudad" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="comuna">Comuna *</label>
+        <input type="text" id="comuna" name="comuna" [(ngModel)]="laboratorio.direccion!.comuna" required>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="region">Región *</label>
+      <input type="text" id="region" name="region" [(ngModel)]="laboratorio.direccion!.region" required>
+    </div>
+    
+    <h3>Contacto</h3>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label for="fono1">Teléfono Principal *</label>
+        <input type="tel" id="fono1" name="fono1" [(ngModel)]="laboratorio.contacto!.fono1" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="fono2">Teléfono Secundario</label>
+        <input type="tel" id="fono2" name="fono2" [(ngModel)]="laboratorio.contacto!.fono2">
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="email">Email *</label>
+      <input type="email" id="email" name="email" [(ngModel)]="laboratorio.contacto!.email" required>
+    </div>
+    
+    <div class="button-group">
+      <button type="submit" class="btn btn-primary" [disabled]="!labForm.valid || loading">
+        {{ loading ? 'Guardando...' : 'Guardar' }}
+      </button>
+      <a routerLink="/laboratorios" class="btn btn-secondary">Cancelar</a>
+    </div>
+  </form>
+</div>

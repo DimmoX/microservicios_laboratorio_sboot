@@ -1,0 +1,193 @@
+.laboratorio-list {
+  background: linear-gradient(135deg, #0369a1 0%, #06b6d4 100%);
+  min-height: 100vh;
+  padding: 4rem 2rem;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  max-width: 1400px;
+  margin: 0 auto 2rem;
+}
+
+.header-section h2 {
+  color: white;
+  font-size: 2rem;
+}
+
+.filters-section {
+  margin-bottom: 2rem;
+  max-width: 1400px;
+  margin: 0 auto 2rem;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.filters-section h3 {
+  margin-bottom: 1.5rem;
+  color: #0369a1;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 20px;
+  align-items: end;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.table-container {
+  overflow-x: auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: white;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+table {
+  min-width: 900px;
+}
+
+thead {
+  background: #0369a1;
+}
+
+thead th {
+  color: white;
+  font-weight: 600;
+  padding: 1rem 1.5rem;
+  white-space: nowrap;
+}
+
+td {
+  padding: 1rem 1.5rem;
+}
+
+tbody tr:hover {
+  background: #f9fafb;
+}
+
+td {
+  color: #555;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.loading, .error {
+  color: white;
+  text-align: center;
+  font-size: 1.2rem;
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  color: #6b7280;
+  font-size: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Responsive Design - Mobile First */
+@media (max-width: 767px) {
+  .laboratorio-list { padding: 2rem 1rem; }
+  
+  .filters-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .header-section {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  .header-section h2 { font-size: 1.5rem; }
+  
+  .button-group {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .action-buttons .btn-sm {
+    width: 100%;
+  }
+  
+  /* Tabla responsive - Scroll horizontal */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    min-width: 600px;
+  }
+  
+  th, td {
+    font-size: 13px;
+    padding: 8px 6px;
+  }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .laboratorio-list { padding: 3rem 1.5rem; }
+  
+  .filters-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  
+  .filters-grid .button-group {
+    grid-column: span 2;
+  }
+  
+  th, td {
+    padding: 10px 8px;
+  }
+}
+
+/* Desktop - Ya está bien configurado por defecto */
+@media (min-width: 1024px) {
+  .filters-grid {
+    grid-template-columns: 1fr 1fr auto;
+  }
+}

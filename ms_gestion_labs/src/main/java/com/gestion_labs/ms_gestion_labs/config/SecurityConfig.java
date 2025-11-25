@@ -21,7 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+// @EnableMethodSecurity deshabilitado - El Gateway controla el acceso
 public class SecurityConfig {
 
     @Bean

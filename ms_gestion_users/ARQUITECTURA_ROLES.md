@@ -63,7 +63,7 @@ CREATE TABLE empleados (
   papellido    VARCHAR2(20),
   sapellido    VARCHAR2(20),
   rut          VARCHAR2(10),
-  cargo        VARCHAR2(40),              -- 💼 DESCRIPCIÓN DEL CARGO
+  cargo        VARCHAR2(40),              -- DESCRIPCIÓN DEL CARGO
   creado_en    TIMESTAMP,
   dir_id       NUMBER,
   contacto_id  NUMBER

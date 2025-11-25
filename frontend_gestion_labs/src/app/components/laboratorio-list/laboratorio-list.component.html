@@ -1,0 +1,100 @@
+<!-- View: Vista para mostrar la lista de laboratorios -->
+<div class="laboratorio-list">
+  <div class="header-section">
+    <h2>📋 Gestión de Laboratorios</h2>
+    <a routerLink="/laboratorios/nuevo" class="btn btn-primary">
+      + Nuevo Laboratorio
+    </a>
+  </div>
+
+  <!-- Filtros de búsqueda -->
+  <div class="filters-section card">
+    <h3>🔍 Filtros de Búsqueda</h3>
+    <div class="filters-grid">
+      <div class="form-group">
+        <label for="filtroCiudad">Ciudad:</label>
+        <input 
+          type="text" 
+          id="filtroCiudad"
+          [(ngModel)]="filtroCiudad"
+          placeholder="Ingrese ciudad..."
+          (keyup.enter)="filtrarPorCiudad()"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="filtroTipo">Tipo:</label>
+        <select 
+          id="filtroTipo"
+          [(ngModel)]="filtroTipo"
+          (change)="filtrarPorTipo()"
+        >
+          <option value="">Todos</option>
+          <option value="Privado">Privado</option>
+          <option value="Clínica">Clínica</option>
+          <option value="Centro">Centro</option>
+          <option value="Hospital">Hospital</option>
+        </select>
+      </div>
+
+      <div class="button-group">
+        <button class="btn btn-primary" (click)="filtrarPorCiudad()">Buscar</button>
+        <button class="btn btn-secondary" (click)="limpiarFiltros()">Limpiar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje de error -->
+  <div *ngIf="errorMessage" class="error">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Indicador de carga -->
+  <div *ngIf="loading" class="loading">
+    Cargando laboratorios...
+  </div>
+
+  <!-- Tabla de laboratorios -->
+  <div *ngIf="!loading && laboratorios.length > 0" class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Tipo</th>
+          <th>Ciudad</th>
+          <th>Comuna</th>
+          <th>Teléfono</th>
+          <th>Email</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let lab of laboratorios">
+          <td>{{ lab.id }}</td>
+          <td><strong>{{ lab.nombre }}</strong></td>
+          <td><span class="badge badge-info">{{ lab.tipo }}</span></td>
+          <td>{{ lab.direccion?.ciudad }}</td>
+          <td>{{ lab.direccion?.comuna }}</td>
+          <td>{{ lab.contacto?.fono1 }}</td>
+          <td>{{ lab.contacto?.email }}</td>
+          <td>
+            <div class="action-buttons">
+              <a [routerLink]="['/laboratorios/editar', lab.id]" class="btn btn-success btn-sm">
+                ✏️ Editar
+              </a>
+              <button (click)="eliminarLaboratorio(lab.id!)" class="btn btn-danger btn-sm">
+                🗑️ Eliminar
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mensaje cuando no hay datos -->
+  <div *ngIf="!loading && laboratorios.length === 0" class="empty-state">
+    <p>No se encontraron laboratorios.</p>
+  </div>
+</div>

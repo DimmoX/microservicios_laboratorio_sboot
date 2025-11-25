@@ -1,0 +1,91 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo">🏥</div>
+      <h1>Laboratorios Clínicos</h1>
+      <p>Iniciar Sesión</p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="login-form">
+      <!-- Usuario -->
+      <div class="form-group">
+        <label for="username">
+          <span class="icon">👤</span>
+          Usuario
+        </label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          [(ngModel)]="loginData.username"
+          required
+          placeholder="usuario@ejemplo.com"
+          class="form-control"
+          [class.error]="loginForm.submitted && !loginData.username"
+        />
+        <small class="error-text" *ngIf="loginForm.submitted && !loginData.username">
+          El usuario es requerido
+        </small>
+      </div>
+
+      <!-- Contraseña -->
+      <div class="form-group">
+        <label for="password">
+          <span class="icon">🔒</span>
+          Contraseña
+        </label>
+        <div class="password-input">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            name="password"
+            [(ngModel)]="loginData.password"
+            required
+            minlength="6"
+            placeholder="Ingrese su contraseña"
+            class="form-control"
+            [class.error]="loginForm.submitted && !loginData.password"
+          />
+          <button type="button" class="toggle-password" (click)="togglePassword()">
+            {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+          </button>
+        </div>
+        <small class="error-text" *ngIf="loginForm.submitted && !loginData.password">
+          La contraseña es requerida
+        </small>
+      </div>
+
+      <!-- Mensaje de error -->
+      <div class="alert alert-error" *ngIf="errorMessage">
+        ⚠️ {{ errorMessage }}
+      </div>
+
+      <!-- Botón de login -->
+      <button type="submit" class="btn btn-primary btn-block" [disabled]="loading">
+        <span *ngIf="!loading">Iniciar Sesión</span>
+        <span *ngIf="loading">⏳ Ingresando...</span>
+      </button>
+
+      <!-- Links adicionales -->
+      <div class="form-footer">
+        <a routerLink="/forgot-password" class="link">¿Olvidaste tu contraseña?</a>
+        <div class="divider">|</div>
+        <a routerLink="/register" class="link">Crear cuenta nueva</a>
+      </div>
+    </form>
+
+    <!-- Credenciales de prueba -->
+    <div class="test-credentials">
+      <p><strong>💡 Credenciales de prueba:</strong></p>
+      <ul>
+        <li>👤 <strong>felipe.munoz&#64;laboratorioandino.cl</strong> / 12345 <span style="color: #888">(LAB_EMPLOYEE)</span></li>
+        <li>👤 <strong>constanza.araya&#64;clinicabiosalud.cl</strong> / 12345 <span style="color: #888">(LAB_EMPLOYEE)</span></li>
+        <li>👤 <strong>matias.carrasco&#64;centrodiagnosticopacifico.cl</strong> / 12345 <span style="color: #888">(LAB_EMPLOYEE)</span></li>
+        <li>👤 <strong>camila.rojas&#64;correo.cl</strong> / 12345 <span style="color: #888">(PATIENT)</span></li>
+        <li>👤 <strong>benjamin.gonzalez&#64;correo.cl</strong> / 12345 <span style="color: #888">(PATIENT)</span></li>
+        <li>👤 <strong>isidora.munoz&#64;correo.cl</strong> / 12345 <span style="color: #888">(PATIENT)</span></li>
+        <li>👤 <strong>admin&#64;laboratorioandino.cl</strong> / admin123 <span style="color: #888">(ADMIN)</span></li>
+      </ul>
+    </div>
+  </div>
+</div>

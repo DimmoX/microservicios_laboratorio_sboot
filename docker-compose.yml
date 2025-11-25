@@ -1,0 +1,154 @@
+# Docker Compose para Sistema de Gestión de Laboratorios
+# Arquitectura: Microservicios con patrón Layered Architecture
+# Backend: Spring Boot con Arquetipos (Controller, Service, Repository)
+# Frontend: Angular con patrón MVC (Model-View-Controller)
+
+version: '3.8'
+
+services:
+  # ========================================
+  # API Gateway - Spring Cloud Gateway
+  # ========================================
+  api-gateway:
+    container_name: gestion_labs_api_gateway
+    build:
+      context: ./ms_api_gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      # Configuración de Spring Boot
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8080
+
+      # JWT Configuration
+      - APP_JWT_SECRET=ubOJAPgPhBFu8zs3ztDtQBOZ2cdZ6ArHplrwneqabTkotIdzq2Nd60QT8X6M+viBh1TIi8Oz3ffq62wrZZygRw==
+      - APP_JWT_EXP_MIN=120
+
+      # URLs de los microservicios (usando nombres de contenedores)
+      - APP_SERVICES_USERS=http://users-service:8082
+      - APP_SERVICES_LABS=http://labs-service:8081
+
+      # Java Options
+      - JAVA_OPTS=-Xms256m -Xmx512m -XX:+UseG1GC
+    depends_on:
+      - labs-service
+      - users-service
+    networks:
+      - labs_network
+    restart: unless-stopped
+
+  # ========================================
+  # Microservicio de Laboratorios
+  # ========================================
+  labs-service:
+    container_name: gestion_labs_backend
+    build:
+      context: ./ms_gestion_labs
+      dockerfile: Dockerfile
+    expose:
+      - "8081"
+    environment:
+      # Configuración de Spring Boot
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8081
+
+      # Configuración de Base de Datos Oracle
+      - SPRING_DATASOURCE_URL=jdbc:oracle:thin:@databasefullstack3_tp?TNS_ADMIN=/app/wallet
+      - SPRING_DATASOURCE_USERNAME=ADMIN
+      - SPRING_DATASOURCE_PASSWORD=DataBaseFullStack3#
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=oracle.jdbc.OracleDriver
+
+      # JPA/Hibernate
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=none
+      - SPRING_JPA_SHOW_SQL=false
+
+      # JWT Configuration
+      - APP_JWT_SECRET=ubOJAPgPhBFu8zs3ztDtQBOZ2cdZ6ArHplrwneqabTkotIdzq2Nd60QT8X6M+viBh1TIi8Oz3ffq62wrZZygRw==
+      - APP_JWT_EXP_MIN=120
+
+      # Java Options
+      - JAVA_OPTS=-Xms256m -Xmx512m -XX:+UseG1GC
+    volumes:
+      # Montar wallet de Oracle
+      - ./wallet/Wallet_databaseFullStack3:/app/wallet:ro
+      # Logs persistentes
+      - ./logs/labs-service:/app/logs
+    networks:
+      - labs_network
+    restart: unless-stopped
+
+  # ========================================
+  # Microservicio de Usuarios
+  # ========================================
+  users-service:
+    container_name: gestion_labs_users
+    build:
+      context: ./ms_gestion_users
+      dockerfile: Dockerfile
+    expose:
+      - "8082"
+    environment:
+      # Configuración de Spring Boot
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8082
+
+      # Configuración de Base de Datos Oracle
+      - SPRING_DATASOURCE_URL=jdbc:oracle:thin:@databasefullstack3_tp?TNS_ADMIN=/app/wallet
+      - SPRING_DATASOURCE_USERNAME=ADMIN
+      - SPRING_DATASOURCE_PASSWORD=DataBaseFullStack3#
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=oracle.jdbc.OracleDriver
+
+      # JPA/Hibernate
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=none
+      - SPRING_JPA_SHOW_SQL=false
+
+      # JWT Configuration
+      - APP_JWT_SECRET=ubOJAPgPhBFu8zs3ztDtQBOZ2cdZ6ArHplrwneqabTkotIdzq2Nd60QT8X6M+viBh1TIi8Oz3ffq62wrZZygRw==
+      - APP_JWT_EXP_MIN=120
+
+      # Java Options
+      - JAVA_OPTS=-Xms256m -Xmx512m -XX:+UseG1GC
+    volumes:
+      # Montar wallet de Oracle
+      - ./wallet/Wallet_databaseFullStack3:/app/wallet:ro
+      # Logs persistentes
+      - ./logs/users-service:/app/logs
+    networks:
+      - labs_network
+    restart: unless-stopped
+
+  # ========================================
+  # Frontend - Angular con Nginx
+  # ========================================
+  frontend:
+    container_name: gestion_labs_frontend
+    build:
+      context: ./frontend_gestion_labs
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+      - API_URL=http://api-gateway:8080
+    depends_on:
+      - api-gateway
+    networks:
+      - labs_network
+    restart: unless-stopped
+
+# ========================================
+# Redes
+# ========================================
+networks:
+  labs_network:
+    driver: bridge
+    name: labs_network
+
+# ========================================
+# Volúmenes (opcional para persistencia)
+# ========================================
+volumes:
+  logs:
+    driver: local
