@@ -46,59 +46,97 @@ export class MockDataService {
    * Crea datos iniciales simulando la estructura del backend
    */
   private createInitialData(): MockDatabase {
-    // USUARIOS - 3 roles diferentes
+    // USUARIOS DE PRUEBA
     const users: Usuario[] = [
       {
         id: 1,
-        nombre: 'Administrador Sistema',
-        username: 'admin@laboratorioandino.cl',
-        password: 'admin123', // En producción esto estaría hasheado
-        rol: 'ADMIN',
-        telefono: '+56912345678',
-        direccion: 'Av. Providencia 1234, Santiago',
+        nombre: 'Felipe Muñoz',
+        username: 'felipe.munoz@laboratorioandino.cl',
+        password: '12345',
+        rol: 'LAB_EMPLOYEE',
+        telefono: '+56911111111',
+        direccion: 'Providencia',
         fechaRegistro: new Date('2024-01-15'),
         activo: true,
-        rut: '12345678-9'
-      },
-      {
-        id: 2,
-        nombre: 'María González',
-        username: 'mgonzalez@laboratorioandino.cl',
-        password: 'lab123',
-        rol: 'LAB_EMPLOYEE',
-        telefono: '+56987654321',
-        direccion: 'Av. Libertador 567, Santiago',
-        fechaRegistro: new Date('2024-02-20'),
-        activo: true,
-        rut: '23456789-0',
-        cargo: 'Técnico de Laboratorio',
+        rut: '11111111-1',
         empleadoId: 1
       },
       {
-        id: 3,
-        nombre: 'Juan Pérez',
-        username: 'jperez@example.com',
-        password: 'patient123',
-        rol: 'PATIENT',
-        telefono: '+56923456789',
-        direccion: 'Calle Las Flores 890, Ñuñoa',
-        fechaRegistro: new Date('2024-03-10'),
+        id: 2,
+        nombre: 'Constanza Araya',
+        username: 'constanza.araya@clinicabiosalud.cl',
+        password: '12345',
+        rol: 'LAB_EMPLOYEE',
+        telefono: '+56922222222',
+        direccion: 'Las Condes',
+        fechaRegistro: new Date('2024-01-16'),
         activo: true,
-        rut: '34567890-1',
-        pacienteId: 1
+        rut: '22222222-2',
+        empleadoId: 2
+      },
+      {
+        id: 3,
+        nombre: 'Matias Carrasco',
+        username: 'matias.carrasco@centrodiagnosticopacifico.cl',
+        password: '12345',
+        rol: 'LAB_EMPLOYEE',
+        telefono: '+56933333333',
+        direccion: 'Ñuñoa',
+        fechaRegistro: new Date('2024-01-17'),
+        activo: true,
+        rut: '33333333-3',
+        empleadoId: 3
       },
       {
         id: 4,
-        nombre: 'Ana Silva',
-        username: 'asilva@example.com',
-        password: 'patient123',
+        nombre: 'Camila Rojas',
+        username: 'camila.rojas@correo.cl',
+        password: '12345',
         rol: 'PATIENT',
-        telefono: '+56934567890',
-        direccion: 'Av. Grecia 123, Peñalolén',
-        fechaRegistro: new Date('2024-03-15'),
+        telefono: '+56944444444',
+        direccion: 'Peñalolén',
+        fechaRegistro: new Date('2024-01-18'),
         activo: true,
-        rut: '45678901-2',
+        rut: '44444444-4',
+        pacienteId: 1
+      },
+      {
+        id: 5,
+        nombre: 'Benjamín González',
+        username: 'benjamin.gonzalez@correo.cl',
+        password: '12345',
+        rol: 'PATIENT',
+        telefono: '+56955555555',
+        direccion: 'La Florida',
+        fechaRegistro: new Date('2024-01-19'),
+        activo: true,
+        rut: '55555555-5',
         pacienteId: 2
+      },
+      {
+        id: 6,
+        nombre: 'Isidora Muñoz',
+        username: 'isidora.munoz@correo.cl',
+        password: '12345',
+        rol: 'PATIENT',
+        telefono: '+56966666666',
+        direccion: 'Macul',
+        fechaRegistro: new Date('2024-01-20'),
+        activo: true,
+        rut: '66666666-6',
+        pacienteId: 3
+      },
+      {
+        id: 7,
+        nombre: 'Administrador Sistema',
+        username: 'admin@laboratorioandino.cl',
+        password: 'admin123',
+        rol: 'ADMIN',
+        telefono: '+56977777777',
+        direccion: 'Santiago Centro',
+        fechaRegistro: new Date('2024-01-21'),
+        activo: true,
+        rut: '77777777-7'
       }
     ];
 
