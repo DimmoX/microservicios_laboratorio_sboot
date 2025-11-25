@@ -57,9 +57,7 @@ EXPOSE 80
 
 
 # Mostrar información del frontend al iniciar el contenedor
-COPY frontend-info.sh /frontend-info.sh
-RUN chmod +x /frontend-info.sh
-CMD /frontend-info.sh && nginx -g 'daemon off;'
+CMD ["nginx", "-g", "daemon off;"]
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
