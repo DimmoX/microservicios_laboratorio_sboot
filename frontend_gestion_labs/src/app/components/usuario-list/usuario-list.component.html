@@ -1,0 +1,59 @@
+<div class="usuario-list">
+  <div class="header-section">
+    <h2>👥 Gestión de Usuarios</h2>
+    <a routerLink="/usuarios/nuevo" class="btn btn-primary">+ Nuevo Usuario</a>
+  </div>
+
+  <div *ngIf="loading" class="loading">Cargando usuarios...</div>
+  <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+
+  <div *ngIf="!loading && usuarios.length > 0" class="table-container">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Email/Username</th>
+          <th>Rol</th>
+          <th>RUT</th>
+          <th>Teléfono</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let usuario of usuarios">
+          <td>{{ usuario.id }}</td>
+          <td>{{ usuario.nombre }}</td>
+          <td>{{ usuario.username }}</td>
+          <td>
+            <span class="badge"
+                  [class.badge-admin]="usuario.rol === 'ADMIN'"
+                  [class.badge-employee]="usuario.rol === 'LAB_EMPLOYEE'"
+                  [class.badge-patient]="usuario.rol === 'PATIENT'">
+              {{ getRolLabel(usuario.rol) }}
+            </span>
+          </td>
+          <td>{{ usuario.rut || '-' }}</td>
+          <td>{{ usuario.telefono || '-' }}</td>
+          <td>
+            <span class="status" [class.active]="usuario.activo" [class.inactive]="!usuario.activo">
+              {{ usuario.activo ? '✓ Activo' : '✗ Inactivo' }}
+            </span>
+          </td>
+          <td class="action-buttons">
+            <a [routerLink]="['/usuarios/editar', usuario.id]" class="btn btn-success btn-sm">✏️ Editar</a>
+            <button (click)="toggleEstado(usuario)" class="btn btn-warning btn-sm">
+              {{ usuario.activo ? '🚫 Desactivar' : '✓ Activar' }}
+            </button>
+            <button (click)="eliminarUsuario(usuario.id)" class="btn btn-danger btn-sm">🗑️ Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="!loading && usuarios.length === 0" class="empty-state">
+    <p>No se encontraron usuarios.</p>
+  </div>
+</div>

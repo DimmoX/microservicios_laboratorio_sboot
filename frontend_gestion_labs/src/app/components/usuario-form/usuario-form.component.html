@@ -1,0 +1,80 @@
+<div class="form-container">
+  <div class="form-card">
+    <h2>{{ isEditMode ? '✏️ Editar Usuario' : '➕ Nuevo Usuario' }}</h2>
+
+    <form (ngSubmit)="onSubmit()" #usuarioForm="ngForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nombre">Nombre Completo *</label>
+          <input type="text" id="nombre" name="nombre" [(ngModel)]="usuario.nombre"
+                 required class="form-control" placeholder="Juan Pérez García" />
+        </div>
+
+        <div class="form-group">
+          <label for="username">Email/Username *</label>
+          <input type="email" id="username" name="username" [(ngModel)]="usuario.username"
+                 required class="form-control" placeholder="usuario@example.com" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="rut">RUT</label>
+          <input type="text" id="rut" name="rut" [(ngModel)]="usuario.rut"
+                 class="form-control" placeholder="12345678-9" />
+        </div>
+
+        <div class="form-group">
+          <label for="telefono">Teléfono</label>
+          <input type="tel" id="telefono" name="telefono" [(ngModel)]="usuario.telefono"
+                 class="form-control" placeholder="+56912345678" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="direccion">Dirección</label>
+        <input type="text" id="direccion" name="direccion" [(ngModel)]="usuario.direccion"
+               class="form-control" placeholder="Av. Providencia 1234, Santiago" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="rol">Rol *</label>
+          <select id="rol" name="rol" [(ngModel)]="usuario.rol" required class="form-control">
+            <option *ngFor="let rol of roles" [value]="rol.value">{{ rol.label }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Contraseña {{ isEditMode ? '(dejar vacío para mantener)' : '*' }}</label>
+          <input type="password" id="password" name="password" [(ngModel)]="usuario.password"
+                 [required]="!isEditMode" class="form-control"
+                 placeholder="{{ isEditMode ? 'Nueva contraseña (opcional)' : 'Mínimo 6 caracteres' }}" />
+        </div>
+      </div>
+
+      <div class="form-group checkbox-group" *ngIf="isEditMode">
+        <label>
+          <input type="checkbox" [(ngModel)]="usuario.activo" name="activo" />
+          Usuario Activo
+        </label>
+      </div>
+
+      <div class="alert alert-error" *ngIf="errorMessage">
+        ⚠️ {{ errorMessage }}
+      </div>
+
+      <div class="alert alert-success" *ngIf="successMessage">
+        ✅ {{ successMessage }}
+      </div>
+
+      <div class="form-actions">
+        <button type="button" (click)="cancelar()" class="btn btn-secondary">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="loading || !usuarioForm.valid">
+          <span *ngIf="!loading">{{ isEditMode ? 'Actualizar' : 'Crear Usuario' }}</span>
+          <span *ngIf="loading">⏳ Guardando...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
