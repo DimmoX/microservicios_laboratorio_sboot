@@ -320,7 +320,7 @@ public class SecurityConfig {
 ```
 
 **Uso de Spring Security:**
-- ✅ **BCryptPasswordEncoder**: Hash seguro de contraseñas (costo 10)
+- ✅ **BCryptPasswordEncoder**: Hash seguro de contraseñas
 - ✅ **@EnableMethodSecurity**: Habilita anotaciones `@PreAuthorize` en controladores
 - ✅ **CORS**: Configuración de orígenes permitidos
 - ✅ **SessionManagement STATELESS**: Sin sesiones
@@ -416,6 +416,9 @@ public class JwtGlobalFilter implements GlobalFilter, Ordered {
 ```
 
 #### 2. TokenBlacklistService
+
+**IMPORTANTE:** La blacklist SOLO existe en el API Gateway.
+
 ```java
 @Service
 public class TokenBlacklistService {
@@ -426,6 +429,12 @@ public class TokenBlacklistService {
     public boolean isBlacklisted(String token) { ... }
 }
 ```
+
+**¿Por qué solo en el Gateway?**
+- ✅ El Gateway es el **único punto de entrada** a todos los microservicios
+- ✅ El Gateway es quien **valida los JWT** en cada request
+- ✅ Los microservicios **confían en el Gateway** (usan `permitAll()`)
+- ❌ NO hay sincronización entre microservicios (innecesaria y compleja)
 
 #### 3. Configuración de Seguridad en Microservicios
 ```java
@@ -444,6 +453,8 @@ public class SecurityConfig {
     }
 }
 ```
+
+**Nota:** Los microservicios tienen un `JwtAuthenticationFilter` que solo extrae información del token para logging/debugging, pero **NO validan blacklist** (esa es responsabilidad exclusiva del Gateway).
 
 ### Proceso de Autenticación
 
@@ -559,31 +570,31 @@ El sistema cuenta con **10 tablas relacionadas**:
     │ │ creado_en                          │
     │ └────────────────────────────────────┘
     │
-    ├────────────────┬────────────────┐
-    ▼                ▼                ▼
-┌──────────────┐ ┌─────────┐  ┌───────────────┐
-│ EXAMENES     │ │ LAB_EXAM│  │ AGENDA_EXAMEN │
-│──────────────│ │─────────│  │───────────────│
-│ id (PK)      │ │ id (PK) │  │ id (PK)       │
-│ codigo       │ │ lab_id  │  │ paciente_id   │
-│ nombre       │ │ exam_id │  │ empleado_id   │
-│ tipo         │ └─────────┘  │ examen_id     │
-└──────────────┘              │ fecha         │
-                              │ estado        │
-                              │ creado_en     │
-                              └───────┬───────┘
-                                      │
-                                      ▼
-                              ┌───────────────────┐
-                              │ RESULTADO_EXAMEN  │
-                              │───────────────────│
-                              │ id (PK)           │
-                              │ agenda_id (FK)    │
-                              │ resultado (TEXT)  │
-                              │ observaciones     │
-                              │ estado            │
-                              │ creado_en         │
-                              └───────────────────┘
+    ├────────────────┬────────────────────┐
+    ▼                ▼                    ▼
+┌──────────────┐ ┌───────────────┐  ┌───────────────┐
+│ EXAMENES     │ │ LAB_EXAM      │  │ AGENDA_EXAMEN │
+│──────────────│ │─────────      │  │───────────────│
+│ id (PK)      │ │ id (PK)       │  │ id (PK)       │
+│ codigo       │ │ id_laboratorio│  │ paciente_id   │
+│ nombre       │ │ id_examen     │  │ empleado_id   │
+│ tipo         │ └───────────────┘  │ examen_id     │
+└──────────────┘                    │ fecha         │
+                                    │ estado        │
+                                    │ creado_en     │
+                                    └───────┬───────┘
+                                            │
+                                            ▼
+                                    ┌───────────────────┐
+                                    │ RESULTADO_EXAMEN  │
+                                    │───────────────────│
+                                    │ id (PK)           │
+                                    │ agenda_id (FK)    │
+                                    │ resultado (TEXT)  │
+                                    │ observaciones     │
+                                    │ estado            │
+                                    │ creado_en         │
+                                    └───────────────────┘
 ```
 
 ### Relaciones y Cascadas
@@ -1092,7 +1103,7 @@ sql usuario/password@databasefullstack3_high
 ```
 
 **Usuario creado:**
-- Email: `admin@laboratorioandino.cl`
+- Email: `admin@laboratorio.cl`
 - Password: `Admin123`
 - Role: `ADMIN`
 
