@@ -26,7 +26,7 @@ public class EmpleadoController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'LAB_EMPLOYEE')")
-    public ResponseEntity<Map<String, Object>> getAll() {
+    public ResponseEntity<Map<String, Object>> getAllEmployees() {
         logger.info("GET: /empleados -> Listar todos los empleados");
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -54,7 +54,7 @@ public class EmpleadoController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'LAB_EMPLOYEE')")
-    public ResponseEntity<Map<String, Object>> getById(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> getEmployeeById(@PathVariable Long id) {
         logger.info("GET: /empleados/{} -> Obtener empleado por ID", id);
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -82,7 +82,7 @@ public class EmpleadoController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> create(@RequestBody EmpleadoModel empleado) {
+    public ResponseEntity<Map<String, Object>> createEmployee(@RequestBody EmpleadoModel empleado) {
         logger.info("POST: /empleados -> Crear nuevo empleado");
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -110,7 +110,7 @@ public class EmpleadoController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @RequestBody EmpleadoModel empleado) {
+    public ResponseEntity<Map<String, Object>> updateEmployee(@PathVariable Long id, @RequestBody EmpleadoModel empleado) {
         logger.info("PUT: /empleados/{} -> Actualizar empleado", id);
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -138,7 +138,7 @@ public class EmpleadoController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> deleteEmployee(@PathVariable Long id) {
         logger.info("DELETE: /empleados/{} -> Eliminar empleado", id);
         
         Map<String, Object> response = new LinkedHashMap<>();

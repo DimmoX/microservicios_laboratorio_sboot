@@ -24,8 +24,8 @@ public class LabExamController {
         this.service = service; 
     }
 
-    @GetMapping 
-    public ResponseEntity<Map<String, Object>> all() {
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getAllLabExamRelations() {
         logger.info("GET: /lab-exam -> Listar todas las relaciones laboratorio-examen");
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -51,8 +51,8 @@ public class LabExamController {
         }
     }
     
-    @GetMapping("/lab/{labId}") 
-    public ResponseEntity<Map<String, Object>> byLab(@PathVariable Long labId) {
+    @GetMapping("/lab/{labId}")
+    public ResponseEntity<Map<String, Object>> getExamsByLab(@PathVariable Long labId) {
         logger.info("GET: /lab-exam/lab/{} -> Listar exámenes de laboratorio", labId);
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -78,8 +78,8 @@ public class LabExamController {
         }
     }
     
-    @GetMapping("/exam/{examId}") 
-    public ResponseEntity<Map<String, Object>> byExam(@PathVariable Long examId) {
+    @GetMapping("/exam/{examId}")
+    public ResponseEntity<Map<String, Object>> getLabsByExam(@PathVariable Long examId) {
         logger.info("GET: /lab-exam/exam/{} -> Listar laboratorios que ofrecen el examen", examId);
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -106,7 +106,7 @@ public class LabExamController {
     }
 
     @GetMapping("/lab/{labId}/exam/{examId}")
-    public ResponseEntity<Map<String, Object>> one(@PathVariable Long labId, @PathVariable Long examId) {
+    public ResponseEntity<Map<String, Object>> getLabExamRelation(@PathVariable Long labId, @PathVariable Long examId) {
         logger.info("GET: /lab-exam/lab/{}/exam/{} -> Obtener relación específica", labId, examId);
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -133,7 +133,7 @@ public class LabExamController {
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, Object>> upsert(@RequestBody LabExamModel m) {
+    public ResponseEntity<Map<String, Object>> upsertLabExamRelation(@RequestBody LabExamModel m) {
         logger.info("POST: /lab-exam -> Crear/actualizar relación laboratorio-examen");
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -164,7 +164,7 @@ public class LabExamController {
     }
 
     @PutMapping("/lab/{labId}/exam/{examId}")
-    public ResponseEntity<Map<String, Object>> update(@PathVariable Long labId, @PathVariable Long examId, @RequestBody LabExamModel m) {
+    public ResponseEntity<Map<String, Object>> updateLabExamRelation(@PathVariable Long labId, @PathVariable Long examId, @RequestBody LabExamModel m) {
         logger.info("PUT: /lab-exam/lab/{}/exam/{} -> Actualizar relación", labId, examId);
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -192,7 +192,7 @@ public class LabExamController {
     }
 
     @DeleteMapping("/lab/{labId}/exam/{examId}")
-    public ResponseEntity<Map<String, Object>> delete(@PathVariable Long labId, @PathVariable Long examId) {
+    public ResponseEntity<Map<String, Object>> deleteLabExamRelation(@PathVariable Long labId, @PathVariable Long examId) {
         logger.info("DELETE: /lab-exam/lab/{}/exam/{} -> Eliminar relación", labId, examId);
         
         Map<String, Object> response = new LinkedHashMap<>();

@@ -27,8 +27,8 @@ public class LaboratorioController {
     /**
      * Listar todos los laboratorios - PÚBLICO
      */
-    @GetMapping 
-    public ResponseEntity<Map<String, Object>> all() {
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getAllLabs() {
         logger.info("GET: /labs -> Listar todos los laboratorios");
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -57,8 +57,8 @@ public class LaboratorioController {
     /**
      * Obtener laboratorio por ID - PÚBLICO
      */
-    @GetMapping("/{id}") 
-    public ResponseEntity<Map<String, Object>> one(@PathVariable Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> getLabById(@PathVariable Long id) {
         logger.info("GET: /labs/{} -> Obtener laboratorio por ID", id);
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -89,7 +89,7 @@ public class LaboratorioController {
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> create(@RequestBody LaboratorioDTO dto) {
+    public ResponseEntity<Map<String, Object>> createLab(@RequestBody LaboratorioDTO dto) {
         logger.info("POST: /labs -> Crear nuevo laboratorio");
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -120,7 +120,7 @@ public class LaboratorioController {
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @RequestBody LaboratorioDTO dto) {
+    public ResponseEntity<Map<String, Object>> updateLab(@PathVariable Long id, @RequestBody LaboratorioDTO dto) {
         logger.info("PUT: /labs/{} -> Actualizar laboratorio", id);
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -151,7 +151,7 @@ public class LaboratorioController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> deleteLab(@PathVariable Long id) {
         logger.info("DELETE: /labs/{} -> Eliminar laboratorio", id);
         
         Map<String, Object> response = new LinkedHashMap<>();

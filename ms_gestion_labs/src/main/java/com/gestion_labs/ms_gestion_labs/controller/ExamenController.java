@@ -23,8 +23,8 @@ public class ExamenController {
         this.service = service; 
     }
 
-    @GetMapping 
-    public ResponseEntity<Map<String, Object>> all() {
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getAllExams() {
         logger.info("GET: /exams -> Listar todos los exámenes");
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -50,8 +50,8 @@ public class ExamenController {
         }
     }
     
-    @GetMapping("/{id}") 
-    public ResponseEntity<Map<String, Object>> one(@PathVariable Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> getExamById(@PathVariable Long id) {
         logger.info("GET: /exams/{} -> Obtener examen por ID", id);
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -77,8 +77,8 @@ public class ExamenController {
         }
     }
     
-    @PostMapping 
-    public ResponseEntity<Map<String, Object>> create(@RequestBody ExamenModel m) {
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> createExam(@RequestBody ExamenModel m) {
         logger.info("POST: /exams -> Crear nuevo examen");
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -104,8 +104,8 @@ public class ExamenController {
         }
     }
     
-    @PutMapping("/{id}") 
-    public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @RequestBody ExamenModel m) {
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> updateExam(@PathVariable Long id, @RequestBody ExamenModel m) {
         logger.info("PUT: /exams/{} -> Actualizar examen", id);
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -131,8 +131,8 @@ public class ExamenController {
         }
     }
     
-    @DeleteMapping("/{id}") 
-    public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> deleteExam(@PathVariable Long id) {
         logger.info("DELETE: /exams/{} -> Eliminar examen", id);
         
         Map<String, Object> response = new LinkedHashMap<>();

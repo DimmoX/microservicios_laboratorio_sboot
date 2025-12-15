@@ -23,7 +23,7 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'LAB_EMPLOYEE')")
-    public ResponseEntity<Map<String, Object>> getAll() {
+    public ResponseEntity<Map<String, Object>> getAllUsers() {
         logger.info("GET: /users -> Listar todos los usuarios");
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -51,7 +51,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'LAB_EMPLOYEE')")
-    public ResponseEntity<Map<String, Object>> getById(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> getUserById(@PathVariable Long id) {
         logger.info("GET: /users/{} -> Obtener usuario por ID", id);
         
         Map<String, Object> response = new LinkedHashMap<>();
