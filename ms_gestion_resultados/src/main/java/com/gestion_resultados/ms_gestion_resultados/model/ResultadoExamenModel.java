@@ -43,6 +43,13 @@ public class ResultadoExamenModel {
     @Column(nullable=false)
     private String estado = "PENDIENTE"; // PENDIENTE | EMITIDO | ANULADO
 
+    // Campos transientes para mostrar nombres (no se guardan en BD)
+    @Transient
+    private String pacienteNombre;
+
+    @Transient
+    private String examenNombre;
+
     // Getters/Setters
 
     public Long getId() { return id; }
@@ -69,4 +76,8 @@ public class ResultadoExamenModel {
     public void setObservacion(String observacion) { this.observacion = observacion; }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+    public String getPacienteNombre() { return pacienteNombre; }
+    public void setPacienteNombre(String pacienteNombre) { this.pacienteNombre = pacienteNombre; }
+    public String getExamenNombre() { return examenNombre; }
+    public void setExamenNombre(String examenNombre) { this.examenNombre = examenNombre; }
 }
