@@ -244,7 +244,6 @@ export class AppComponent implements OnInit {
           this.isAdmin = rol === 'ADMIN';
           this.isLabEmployee = rol === 'LAB_EMPLOYEE';
           this.isPatient = rol === 'PATIENT';
-          console.log('Rol detectado:', { rol, isAdmin: this.isAdmin, isLabEmployee: this.isLabEmployee, isPatient: this.isPatient });
         } else {
           this.isAdmin = false;
           this.isLabEmployee = false;
@@ -252,7 +251,6 @@ export class AppComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error al cargar usuario:', error);
         this.currentUser = null;
         this.isAdmin = false;
         this.isLabEmployee = false;
@@ -283,7 +281,6 @@ export class AppComponent implements OnInit {
         this.router.navigate(['/']);
       },
       error: () => {
-        // Incluso si falla la llamada al backend, limpiamos el token local
         sessionStorage.removeItem('token');
         this.dropdownOpen = false;
         this.router.navigate(['/']);
