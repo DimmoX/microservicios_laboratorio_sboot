@@ -45,7 +45,6 @@ export class LoginComponent {
     this.authService.login(this.loginData).subscribe({
       next: (sesion) => {
         this.loading = false;
-        console.log('Login exitoso:', sesion);
 
         // Redirigir según el rol
         if (sesion.usuario.rol === 'ADMIN') {
