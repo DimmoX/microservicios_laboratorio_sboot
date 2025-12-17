@@ -1,20 +1,27 @@
 package com.gestion_labs.ms_gestion_labs.controller;
 
-import com.gestion_labs.ms_gestion_labs.model.LabExamKey;
-import com.gestion_labs.ms_gestion_labs.model.LabExamModel;
-import com.gestion_labs.ms_gestion_labs.service.lab_exam.LabExamService;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.gestion_labs.ms_gestion_labs.model.LabExamKey;
+import com.gestion_labs.ms_gestion_labs.model.LabExamModel;
+import com.gestion_labs.ms_gestion_labs.service.lab_exam.LabExamService;
+
 @RestController 
-@RequestMapping("/lab-exam")
+@RequestMapping("/lab-exams")
 public class LabExamController {
 
     private static final Logger logger = LoggerFactory.getLogger(LabExamController.class);
@@ -26,7 +33,7 @@ public class LabExamController {
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllLabExamRelations() {
-        logger.info("GET: /lab-exam -> Listar todas las relaciones laboratorio-examen");
+        logger.info("GET: /lab-exams -> Listar todas las relaciones laboratorio-examen");
         
         Map<String, Object> response = new LinkedHashMap<>();
         
@@ -53,7 +60,7 @@ public class LabExamController {
     
     @GetMapping("/lab/{labId}")
     public ResponseEntity<Map<String, Object>> getExamsByLab(@PathVariable Long labId) {
-        logger.info("GET: /lab-exam/lab/{} -> Listar exámenes de laboratorio", labId);
+        logger.info("GET: /lab-exams/lab/{} -> Listar exámenes de laboratorio", labId);
         
         Map<String, Object> response = new LinkedHashMap<>();
         
