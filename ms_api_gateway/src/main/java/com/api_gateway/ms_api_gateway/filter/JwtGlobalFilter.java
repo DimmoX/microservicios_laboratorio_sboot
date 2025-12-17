@@ -51,7 +51,12 @@ public class JwtGlobalFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
         String method = request.getMethod().name();
-        
+
+        // IMPORTANTE: Permitir peticiones OPTIONS (CORS preflight) sin validar JWT
+        if ("OPTIONS".equals(method)) {
+            return chain.filter(exchange);
+        }
+
         // Permitir rutas públicas
         if (isPublicPath(path, method)) {
             return chain.filter(exchange);
@@ -64,8 +69,13 @@ public class JwtGlobalFilter implements GlobalFilter, Ordered {
             logger.warn("Acceso denegado a {} {} - Token no proporcionado", method, path);
             return onError(exchange, "Token no proporcionado", HttpStatus.UNAUTHORIZED);
         }
-        
-        String token = authHeader.substring(7);
+
+        String token = authHeader.substring(7).trim();
+
+        if (token.isEmpty()) {
+            logger.warn("Acceso denegado a {} {} - Token vacío", method, path);
+            return onError(exchange, "Token no proporcionado", HttpStatus.UNAUTHORIZED);
+        }
         
         // Verificar blacklist
         if (blacklistService.isBlacklisted(token)) {
@@ -85,24 +95,45 @@ public class JwtGlobalFilter implements GlobalFilter, Ordered {
             
             String username = claims.getSubject();
             String role = claims.get("role", String.class);
+            Integer userId = claims.get("userId", Integer.class);
+            Integer pacienteId = claims.get("pacienteId", Integer.class);
+            Integer empleadoId = claims.get("empleadoId", Integer.class);
             
             if (username == null || username.isEmpty()) {
                 logger.error("Token sin usuario válido para {} {}", method, path);
                 return onError(exchange, "Token sin usuario válido", HttpStatus.UNAUTHORIZED);
             }
             
-            // SOLUCIÓN FINAL: Guardar en atributos del exchange y continuar
-            // Los microservices luego leerán de atributos o confiarán en el Gateway
+            // Guardar en atributos del exchange (se usarán en filtros de rutas)
             exchange.getAttributes().put("X-User-Id", username);
             exchange.getAttributes().put("X-User-Role", role != null ? role : "UNKNOWN");
             
-            logger.info("✓ {} {} - Usuario: {} [{}]", method, path, username, role);
+            if (userId != null) {
+                exchange.getAttributes().put("X-User-DB-Id", userId.toString());
+            }
             
-            // Continuar sin modificar headers - los microservices confían en el Gateway
+            if (pacienteId != null) {
+                exchange.getAttributes().put("X-Patient-Id", pacienteId.toString());
+            }
+            
+            if (empleadoId != null) {
+                exchange.getAttributes().put("X-Employee-Id", empleadoId.toString());
+            }
+
+            logger.info("✓ {} {} - Usuario: {} [{}] (pacienteId={}, empleadoId={})", 
+                method, path, username, role, pacienteId, empleadoId);
+
+            // Continuar - los filtros de ruta leerán los atributos
             return chain.filter(exchange);
             
         } catch (Exception e) {
-            logger.warn("Token inválido para {} {}: {}", method, path, e.getMessage());
+            logger.warn(
+                "Token inválido para {} {}: {}{}",
+                method,
+                path,
+                e.getClass().getSimpleName(),
+                e.getMessage() != null ? (" - " + e.getMessage()) : ""
+            );
             return onError(exchange, "Token inválido", HttpStatus.UNAUTHORIZED);
         }
     }

@@ -17,12 +17,12 @@ import { ResultadoExamen } from '../../models/resultado.model';
       <div *ngIf="!loading && resultados.length > 0" class="grid">
         <div *ngFor="let resultado of resultados" class="card">
           <h3>Resultado ID: {{ resultado.id }}</h3>
-          <p><strong>Paciente ID:</strong> {{ resultado.pacienteId }}</p>
-          <p><strong>Examen ID:</strong> {{ resultado.examenId }}</p>
-          <p><strong>Valor:</strong> {{ resultado.valor }} {{ resultado.unidad }}</p>
-          <p><strong>Estado:</strong> 
+          <p><strong>Paciente:</strong> {{ resultado.pacienteNombre || 'ID: ' + resultado.pacienteId }}</p>
+          <p><strong>Examen:</strong> {{ resultado.examenNombre || 'ID: ' + resultado.examenId }}</p>
+          <p *ngIf="resultado.valor"><strong>Valor:</strong> {{ resultado.valor }} {{ resultado.unidad }}</p>
+          <p><strong>Estado:</strong>
             <span class="badge" [ngClass]="{
-              'badge-success': resultado.estado === 'EMITIDO',
+              'badge-success': resultado.estado === 'COMPLETADO',
               'badge-warning': resultado.estado === 'PENDIENTE',
               'badge-danger': resultado.estado === 'ANULADO'
             }">{{ resultado.estado }}</span>

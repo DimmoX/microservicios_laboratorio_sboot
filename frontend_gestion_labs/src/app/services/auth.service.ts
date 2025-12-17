@@ -1,12 +1,12 @@
-// Service: Autenticación con localStorage
-// IMPORTANTE: Funciona completamente sin backend
-// Simula la estructura de respuestas del backend para mantener compatibilidad
+// Service: Autenticación con backend real
+// IMPORTANTE: Ahora usa HttpClient para llamar al API Gateway
 
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, BehaviorSubject, throwError } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
+import { delay, map, tap, catchError } from 'rxjs/operators';
 import { Usuario, LoginRequest, SesionActual } from '../models/usuario.model';
-import { MockDataService } from './mock-data.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -15,29 +15,26 @@ export class AuthService {
   private readonly SESSION_KEY = 'current_session';
   private authStatusSubject = new BehaviorSubject<boolean>(this.isAuthenticated());
   public authStatus$ = this.authStatusSubject.asObservable();
+  private apiUrl = environment.apiUrl;
 
-  constructor(private mockDataService: MockDataService) {}
+  constructor(private http: HttpClient) {}
 
   /**
-   * Login simulado - valida contra localStorage
-   * Simula respuesta del backend con delay para realismo
+   * Endpoint: POST /auth/login
    */
   login(request: LoginRequest): Observable<SesionActual> {
-    // Simular delay de red
-    return of(null).pipe(
-      delay(500),
-      map(() => {
-        const user = this.mockDataService.validateCredentials(request.username, request.password);
+    return this.http.post<any>(`${this.apiUrl}/auth/login`, request).pipe(
+      map(response => {
 
-        if (!user) {
-          throw new Error('Credenciales inválidas');
+        if (!response.data || !response.data.token) {
+          throw new Error('Respuesta inválida del servidor');
         }
 
-        // Generar token simulado
-        const token = this.generateMockToken(user);
+        const token = response.data.token;
+        const usuario = response.data.usuario;
 
         const sesion: SesionActual = {
-          usuario: { ...user, password: '' }, // No exponer password
+          usuario: { ...usuario, password: '' },
           token,
           fechaLogin: new Date()
         };
@@ -50,109 +47,60 @@ export class AuthService {
         this.authStatusSubject.next(true);
 
         return sesion;
+      }),
+      catchError((error: HttpErrorResponse) => {
+        let errorMessage = 'Error al iniciar sesión';
+        
+        if (error.status === 401) {
+          errorMessage = 'Usuario o contraseña incorrectos';
+        } else if (error.status === 0) {
+          errorMessage = 'No se puede conectar con el servidor';
+        } else if (error.error?.description) {
+          errorMessage = error.error.description;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        return throwError(() => new Error(errorMessage));
       })
     );
   }
 
-  /**
-   * Genera un token JWT simulado
-   */
-  private generateMockToken(user: Usuario): string {
-    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-    const payload = btoa(JSON.stringify({
-      sub: user.username,
-      userId: user.id,
-      role: user.rol,
-      iat: Date.now()
-    }));
-    const signature = btoa('mock-signature');
-    return `${header}.${payload}.${signature}`;
-  }
 
   /**
    * Registro de paciente - Solo ADMIN
-   * Simula endpoint: POST /registro/paciente
+   * Endpoint: POST /registro/paciente
    */
   registerPaciente(request: any): Observable<any> {
-    return of(null).pipe(
-      delay(300),
-      map(() => {
-        const currentUser = this.getCurrentUserSync();
-        if (!currentUser || currentUser.rol !== 'ADMIN') {
-          throw new Error('Acceso denegado. Solo administradores pueden registrar pacientes.');
-        }
-
-        const newUser: Usuario = {
-          id: 0, // Se asigna automáticamente
-          nombre: request.nombre,
-          username: request.username,
-          password: request.password,
-          rol: 'PATIENT',
-          telefono: request.telefono,
-          direccion: request.direccion,
-          activo: true,
-          rut: request.rut,
-          pacienteId: 0 // Se asigna automáticamente
-        };
-
-        const created = this.mockDataService.addUser(newUser);
-        return { code: '000', description: 'Paciente registrado exitosamente', data: created };
-      })
-    );
+    return this.http.post<any>(`${this.apiUrl}/registro/paciente`, request);
   }
 
   /**
    * Registro de empleado - Solo ADMIN
-   * Simula endpoint: POST /registro/empleado
+   * Endpoint: POST /registro/empleado
    */
   registerEmpleado(request: any): Observable<any> {
-    return of(null).pipe(
-      delay(300),
-      map(() => {
-        const currentUser = this.getCurrentUserSync();
-        if (!currentUser || currentUser.rol !== 'ADMIN') {
-          throw new Error('Acceso denegado. Solo administradores pueden registrar empleados.');
-        }
-
-        const newUser: Usuario = {
-          id: 0,
-          nombre: request.nombre,
-          username: request.username,
-          password: request.password,
-          rol: 'LAB_EMPLOYEE',
-          telefono: request.telefono,
-          direccion: request.direccion,
-          activo: true,
-          rut: request.rut,
-          cargo: request.cargo,
-          empleadoId: 0
-        };
-
-        const created = this.mockDataService.addUser(newUser);
-        return { code: '000', description: 'Empleado registrado exitosamente', data: created };
-      })
-    );
+    return this.http.post<any>(`${this.apiUrl}/registro/empleado`, request);
   }
 
   /**
    * Logout - Limpia sesión
-   * Simula endpoint: POST /auth/logout
+   * Endpoint: POST /auth/logout
    */
   logout(): Observable<any> {
-    return of(null).pipe(
-      delay(200),
-      map(() => {
-        sessionStorage.removeItem(this.SESSION_KEY);
-        sessionStorage.removeItem('token');
-        this.authStatusSubject.next(false);
-        return { code: '000', description: 'Logout exitoso' };
-      })
+    // Primero limpiar sesión local
+    sessionStorage.removeItem(this.SESSION_KEY);
+    sessionStorage.removeItem('token');
+    this.authStatusSubject.next(false);
+
+    // Luego notificar al backend (sin esperar respuesta)
+    return this.http.post<any>(`${this.apiUrl}/auth/logout`, {}).pipe(
+      map(() => ({ code: '000', description: 'Logout exitoso' }))
     );
   }
 
   /**
    * Obtiene perfil del usuario actual desde sessionStorage
-   * Simula endpoint: GET /users/profile
    */
   getProfile(): Observable<Usuario> {
     return of(null).pipe(
@@ -169,45 +117,21 @@ export class AuthService {
 
   /**
    * Cambiar contraseña del usuario actual
-   * Simula endpoint: PUT /users/{id}/password
+   * Endpoint: PUT /users/{id}/password
    */
   changePassword(userId: number, oldPassword: string, newPassword: string): Observable<any> {
-    return of(null).pipe(
-      delay(300),
-      map(() => {
-        const success = this.mockDataService.updatePassword(userId, oldPassword, newPassword);
-        if (!success) {
-          throw new Error('Contraseña actual incorrecta');
-        }
-
-        // Actualizar sesión si es el usuario actual
-        const session = this.getCurrentSessionSync();
-        if (session && session.usuario.id === userId) {
-          session.usuario.password = newPassword;
-          sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
-        }
-
-        return { code: '000', description: 'Contraseña actualizada exitosamente' };
-      })
-    );
+    return this.http.put<any>(`${this.apiUrl}/users/${userId}/password`, {
+      oldPassword,
+      newPassword
+    });
   }
 
   /**
    * Recuperar contraseña
-   * Simula endpoint: POST /auth/forgot-password
+   * Endpoint: POST /auth/forgot-password
    */
   forgotPassword(email: string): Observable<any> {
-    return of(null).pipe(
-      delay(500),
-      map(() => {
-        // Simular envío de email
-        const user = this.mockDataService.findUserByUsername(email);
-        if (!user) {
-          throw new Error('Usuario no encontrado');
-        }
-        return { code: '000', description: 'Se ha enviado un email con instrucciones para recuperar tu contraseña' };
-      })
-    );
+    return this.http.post<any>(`${this.apiUrl}/auth/forgot-password`, { email });
   }
 
   /**
@@ -294,25 +218,17 @@ export class AuthService {
 
   /**
    * Actualiza perfil del usuario
-   * Simula endpoint: PUT /users/{id}
+   * Endpoint: PUT /users/{id}
    */
   updateProfile(userId: number, updates: Partial<Usuario>): Observable<any> {
-    return of(null).pipe(
-      delay(300),
-      map(() => {
-        const updatedUser = this.mockDataService.updateUser(userId, updates);
-        if (!updatedUser) {
-          throw new Error('Usuario no encontrado');
-        }
-
-        // Actualizar sesión si es el usuario actual
+    return this.http.put<any>(`${this.apiUrl}/users/${userId}`, updates).pipe(
+      tap(response => {
+        // Actualizar sesión local si es el usuario actual
         const session = this.getCurrentSessionSync();
-        if (session && session.usuario.id === userId) {
-          session.usuario = { ...session.usuario, ...updates };
+        if (session && session.usuario.id === userId && response.data) {
+          session.usuario = { ...session.usuario, ...response.data };
           sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
         }
-
-        return { code: '000', description: 'Perfil actualizado exitosamente', data: updatedUser };
       })
     );
   }

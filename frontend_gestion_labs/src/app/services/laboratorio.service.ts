@@ -1,21 +1,26 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Laboratorio } from '../models/laboratorio.model';
-import { MockDataService } from './mock-data.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LaboratorioService {
-  constructor(private mockDataService: MockDataService) {}
+  private apiUrl = `${environment.apiUrl}/labs`;
+
+  constructor(private http: HttpClient) {}
 
   /**
    * Obtener todos los laboratorios
-   * Simula endpoint: GET /labs
+   * Endpoint: GET /labs
    */
   getLaboratorios(): Observable<Laboratorio[]> {
-    return of(this.mockDataService.getLaboratorios()).pipe(delay(200));
+    return this.http.get<any>(this.apiUrl).pipe(
+      map(response => response.data || [])
+    );
   }
 
   /**
@@ -42,62 +47,39 @@ export class LaboratorioService {
 
   /**
    * Obtener un laboratorio por ID
-   * Simula endpoint: GET /labs/{id}
+   * Endpoint: GET /labs/{id}
    */
   getLaboratorio(id: number): Observable<Laboratorio> {
-    return of(null).pipe(
-      delay(150),
-      map(() => {
-        const lab = this.mockDataService.getLaboratorios().find(l => l.id === id);
-        if (!lab) {
-          throw new Error('Laboratorio no encontrado');
-        }
-        return lab;
-      })
+    return this.http.get<any>(`${this.apiUrl}/${id}`).pipe(
+      map(response => response.data)
     );
   }
 
   /**
    * Crear nuevo laboratorio
-   * Simula endpoint: POST /labs (requiere ADMIN)
+   * Endpoint: POST /labs (requiere ADMIN)
    */
   crearLaboratorio(laboratorio: Laboratorio): Observable<Laboratorio> {
-    return of(null).pipe(
-      delay(300),
-      map(() => {
-        return this.mockDataService.saveLaboratorio(laboratorio);
-      })
+    return this.http.post<any>(this.apiUrl, laboratorio).pipe(
+      map(response => response.data)
     );
   }
 
   /**
    * Actualizar laboratorio
-   * Simula endpoint: PUT /labs/{id} (requiere ADMIN)
+   * Endpoint: PUT /labs/{id} (requiere ADMIN)
    */
   actualizarLaboratorio(id: number, laboratorio: Laboratorio): Observable<Laboratorio> {
-    return of(null).pipe(
-      delay(300),
-      map(() => {
-        laboratorio.id = id;
-        return this.mockDataService.saveLaboratorio(laboratorio);
-      })
+    return this.http.put<any>(`${this.apiUrl}/${id}`, laboratorio).pipe(
+      map(response => response.data)
     );
   }
 
   /**
    * Eliminar laboratorio
-   * Simula endpoint: DELETE /labs/{id} (requiere ADMIN)
+   * Endpoint: DELETE /labs/{id} (requiere ADMIN)
    */
   eliminarLaboratorio(id: number): Observable<any> {
-    return of(null).pipe(
-      delay(200),
-      map(() => {
-        const success = this.mockDataService.deleteLaboratorio(id);
-        if (!success) {
-          throw new Error('Laboratorio no encontrado');
-        }
-        return { code: '000', description: 'Laboratorio eliminado exitosamente' };
-      })
-    );
+    return this.http.delete<any>(`${this.apiUrl}/${id}`);
   }
 }

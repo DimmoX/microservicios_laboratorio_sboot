@@ -47,8 +47,9 @@ RUN echo 'server { \
     \
     # Configuración de caché \
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ { \
-        expires 1y; \
-        add_header Cache-Control "public, immutable"; \
+        add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"; \
+        add_header Pragma "no-cache"; \
+        add_header Expires "0"; \
     } \
 }' > /etc/nginx/conf.d/default.conf
 

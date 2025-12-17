@@ -82,7 +82,6 @@ export class ContactComponent {
   submitted = false;
 
   onSubmit() {
-    console.log('Formulario enviado:', this.formData);
     this.submitted = true;
     setTimeout(() => {
       this.formData = { nombre: '', email: '', telefono: '', mensaje: '' };

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { MockDataService } from '../../services/mock-data.service';
+import { UsuarioService } from '../../services/usuario.service';
 import { Usuario } from '../../models/usuario.model';
 
 @Component({
@@ -37,7 +37,7 @@ export class UsuarioFormComponent implements OnInit {
   ];
 
   constructor(
-    private mockDataService: MockDataService,
+    private usuarioService: UsuarioService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -51,13 +51,14 @@ export class UsuarioFormComponent implements OnInit {
   }
 
   cargarUsuario(id: number): void {
-    const usuarios = this.mockDataService.getUsers();
-    const usuario = usuarios.find(u => u.id === id);
-    if (usuario) {
-      this.usuario = { ...usuario };
-    } else {
-      this.errorMessage = 'Usuario no encontrado';
-    }
+    this.usuarioService.getUsuario(id).subscribe({
+      next: (usuario) => {
+        this.usuario = { ...usuario };
+      },
+      error: (error) => {
+        this.errorMessage = 'Usuario no encontrado: ' + error.message;
+      }
+    });
   }
 
   onSubmit(): void {
@@ -74,35 +75,47 @@ export class UsuarioFormComponent implements OnInit {
     this.loading = true;
     this.errorMessage = '';
 
-    try {
-      if (this.isEditMode) {
-        // Actualizar usuario existente
-        const db = this.mockDataService.getDatabase();
-        const index = db.users.findIndex(u => u.id === this.usuario.id);
-        if (index >= 0) {
-          // Si no se ingresó nueva contraseña, mantener la anterior
-          if (!this.usuario.password) {
-            this.usuario.password = db.users[index].password;
-          }
-          db.users[index] = this.usuario;
-          this.mockDataService.saveDatabase(db);
+    if (this.isEditMode) {
+      // Actualizar usuario existente
+      const updates: Partial<Usuario> = {
+        nombre: this.usuario.nombre,
+        telefono: this.usuario.telefono,
+        direccion: this.usuario.direccion,
+        activo: this.usuario.activo
+      };
+
+      this.usuarioService.actualizarUsuario(this.usuario.id!, updates).subscribe({
+        next: () => {
           this.successMessage = 'Usuario actualizado exitosamente';
+          this.loading = false;
+          setTimeout(() => {
+            this.router.navigate(['/usuarios']);
+          }, 1000);
+        },
+        error: (error) => {
+          this.errorMessage = 'Error al actualizar usuario: ' + error.message;
+          this.loading = false;
         }
-      } else {
-        // Crear nuevo usuario
-        this.mockDataService.addUser(this.usuario);
-        this.successMessage = 'Usuario creado exitosamente';
-      }
-
-      this.loading = false;
-
-      // Redirigir después de 1 segundo
-      setTimeout(() => {
-        this.router.navigate(['/usuarios']);
-      }, 1000);
-    } catch (error: any) {
-      this.errorMessage = error.message || 'Error al guardar usuario';
-      this.loading = false;
+      });
+    } else {
+      // Crear nuevo usuario
+      this.usuarioService.crearUsuario(this.usuario).subscribe({
+        next: () => {
+          this.successMessage = 'Usuario creado exitosamente';
+          this.loading = false;
+          setTimeout(() => {
+            this.router.navigate(['/usuarios']);
+          }, 1000);
+        },
+        error: (error) => {
+          if (error.error?.code === '403') {
+            this.errorMessage = 'No tiene permisos para crear usuarios. Solo los administradores pueden crear usuarios.';
+          } else {
+            this.errorMessage = 'Error al crear usuario: ' + (error.error?.description || error.message);
+          }
+          this.loading = false;
+        }
+      });
     }
   }
 

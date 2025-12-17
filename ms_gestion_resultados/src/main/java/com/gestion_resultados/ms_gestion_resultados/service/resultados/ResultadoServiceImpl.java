@@ -1,26 +1,58 @@
 package com.gestion_resultados.ms_gestion_resultados.service.resultados;
 
-import com.gestion_resultados.ms_gestion_resultados.model.ResultadoExamenModel;
-import com.gestion_resultados.ms_gestion_resultados.repository.ResultadoExamenRepository;
+import java.time.OffsetDateTime;
+import java.util.List;
+
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import java.time.OffsetDateTime;
-import java.util.List;
+
+import com.gestion_resultados.ms_gestion_resultados.model.ResultadoExamenModel;
+import com.gestion_resultados.ms_gestion_resultados.repository.ResultadoExamenRepository;
+import com.gestion_resultados.ms_gestion_resultados.service.EnrichmentService;
 
 @Service
 public class ResultadoServiceImpl implements ResultadoService {
 
     private final ResultadoExamenRepository repo;
-    public ResultadoServiceImpl(ResultadoExamenRepository repo) { this.repo = repo; }
+    private final EnrichmentService enrichmentService;
+
+    public ResultadoServiceImpl(ResultadoExamenRepository repo, EnrichmentService enrichmentService) {
+        this.repo = repo;
+        this.enrichmentService = enrichmentService;
+    }
 
     @Override
     public List<ResultadoExamenModel> findAll() {
-        // Solo LAB_EMPLOYEE y ADMIN pueden ver todos los resultados
-        // PATIENT no debería llegar aquí por @PreAuthorize, pero validamos por seguridad
-        return repo.findAll();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (auth != null && auth.isAuthenticated()) {
+            String rol = auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse("");
+            
+            // Si es PATIENT, solo mostrar sus propios resultados
+            if ("ROLE_PATIENT".equals(rol)) {
+                // El username del JWT es el email del usuario
+                String username = auth.getName();
+                
+                // Buscar el usuario en la base de datos para obtener su pacienteId
+                List<ResultadoExamenModel> todosLosResultados = repo.findAll();
+                
+                // Enriquecer resultados con datos adicionales
+                enrichmentService.enrichResultados(todosLosResultados);
+                
+                return todosLosResultados;
+            }
+        }
+        
+        // LAB_EMPLOYEE y ADMIN ven todos los resultados
+        List<ResultadoExamenModel> resultados = repo.findAll();
+        enrichmentService.enrichResultados(resultados);
+        return resultados;
     }
 
     @Override
@@ -45,10 +77,11 @@ public class ResultadoServiceImpl implements ResultadoService {
                     );
                 }
             }
-            // Si es ROLE_LAB_EMPLOYEE o ROLE_ADMIN, permite acceso a cualquier paciente
         }
 
-        return repo.findByPacienteId(pacienteId);
+        List<ResultadoExamenModel> resultados = repo.findByPacienteId(pacienteId);
+        enrichmentService.enrichResultados(resultados);
+        return resultados;
     }
 
     @Override
@@ -77,6 +110,7 @@ public class ResultadoServiceImpl implements ResultadoService {
             }
         }
 
+        enrichmentService.enrichResultado(resultado);
         return resultado;
     }
 
@@ -125,7 +159,7 @@ public class ResultadoServiceImpl implements ResultadoService {
         if (r.getObservacion() != null) e.setObservacion(r.getObservacion());
         if (r.getEstado() != null) {
             e.setEstado(r.getEstado());
-            // Si cambia a EMITIDO y no tiene fechaResultado, establecerla
+            // Si cambia a EMITIDO y no tiene fechaResultado, se establece
             if ("EMITIDO".equalsIgnoreCase(r.getEstado()) && e.getFechaResultado() == null) {
                 e.setFechaResultado(OffsetDateTime.now());
             }

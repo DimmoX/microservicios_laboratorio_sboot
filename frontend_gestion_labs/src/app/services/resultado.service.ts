@@ -1,89 +1,75 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ResultadoExamen } from '../models/resultado.model';
-import { MockDataService } from './mock-data.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ResultadoService {
-  constructor(private mockDataService: MockDataService) {}
+  private apiUrl = `${environment.apiUrl}/resultados`;
+
+  constructor(private http: HttpClient) {}
 
   /**
    * Obtener todos los resultados
-   * Simula endpoint: GET /resultados
+   * Endpoint: GET /resultados
    */
   getResultados(): Observable<ResultadoExamen[]> {
-    return of(this.mockDataService.getResultados()).pipe(delay(200));
+    return this.http.get<any>(this.apiUrl).pipe(
+      map(response => {
+        return response.data || [];
+      })
+    );
   }
 
   /**
    * Obtener un resultado por ID
-   * Simula endpoint: GET /resultados/{id}
+   * Endpoint: GET /resultados/{id}
    */
   getResultado(id: number): Observable<ResultadoExamen> {
-    return of(null).pipe(
-      delay(150),
-      map(() => {
-        const resultado = this.mockDataService.getResultados().find(r => r.id === id);
-        if (!resultado) {
-          throw new Error('Resultado no encontrado');
-        }
-        return resultado;
-      })
+    return this.http.get<any>(`${this.apiUrl}/${id}`).pipe(
+      map(response => response.data)
     );
   }
 
   /**
    * Obtener resultados por paciente
-   * Simula endpoint: GET /resultados/paciente/{id}
+   * Endpoint: GET /resultados/paciente/{id}
    */
   getResultadosPorPaciente(pacienteId: number): Observable<ResultadoExamen[]> {
-    return of(this.mockDataService.getResultadosByPaciente(pacienteId)).pipe(delay(200));
+    return this.http.get<any>(`${this.apiUrl}/paciente/${pacienteId}`).pipe(
+      map(response => response.data || [])
+    );
   }
 
   /**
    * Crear nuevo resultado
-   * Simula endpoint: POST /resultados (requiere LAB_EMPLOYEE o ADMIN)
+   * Endpoint: POST /resultados (requiere LAB_EMPLOYEE o ADMIN)
    */
   crearResultado(resultado: ResultadoExamen): Observable<ResultadoExamen> {
-    return of(null).pipe(
-      delay(300),
-      map(() => {
-        return this.mockDataService.saveResultado(resultado);
-      })
+    return this.http.post<any>(this.apiUrl, resultado).pipe(
+      map(response => response.data)
     );
   }
 
   /**
    * Actualizar resultado
-   * Simula endpoint: PUT /resultados/{id} (requiere ADMIN)
+   * Endpoint: PUT /resultados/{id} (requiere ADMIN)
    */
   actualizarResultado(id: number, resultado: ResultadoExamen): Observable<ResultadoExamen> {
-    return of(null).pipe(
-      delay(300),
-      map(() => {
-        resultado.id = id;
-        return this.mockDataService.saveResultado(resultado);
-      })
+    return this.http.put<any>(`${this.apiUrl}/${id}`, resultado).pipe(
+      map(response => response.data)
     );
   }
 
   /**
    * Eliminar resultado
-   * Simula endpoint: DELETE /resultados/{id} (requiere ADMIN)
+   * Endpoint: DELETE /resultados/{id} (requiere ADMIN)
    */
   eliminarResultado(id: number): Observable<any> {
-    return of(null).pipe(
-      delay(200),
-      map(() => {
-        const success = this.mockDataService.deleteResultado(id);
-        if (!success) {
-          throw new Error('Resultado no encontrado');
-        }
-        return { code: '000', description: 'Resultado eliminado exitosamente' };
-      })
-    );
+    return this.http.delete<any>(`${this.apiUrl}/${id}`);
   }
 }

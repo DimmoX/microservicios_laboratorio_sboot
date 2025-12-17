@@ -78,8 +78,12 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
                 
                 String username = claims.getSubject();
                 String role = claims.get("role", String.class);
+                Integer userId = claims.get("userId", Integer.class);
+                Integer pacienteId = claims.get("pacienteId", Integer.class);
+                Integer empleadoId = claims.get("empleadoId", Integer.class);
                 
-                logger.debug("Token válido para usuario: {} con rol: {}", username, role);
+                logger.debug("Token válido para usuario: {} con rol: {} (pacienteId={}, empleadoId={})", 
+                    username, role, pacienteId, empleadoId);
                 
                 // Validar que los valores no sean nulos
                 if (username == null || username.isEmpty()) {
@@ -87,14 +91,26 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
                     return onError(exchange, "Token sin usuario válido", HttpStatus.UNAUTHORIZED);
                 }
                 
-                // Agregar headers con información del usuario
-                // SOLUCIÓN: No usar exchange.getRequest().mutate() porque devuelve headers inmutables
-                // En su lugar, crear un nuevo request builder desde el exchange directamente
-                ServerWebExchange modifiedExchange = exchange.mutate()
-                    .request(builder -> builder
-                        .header("X-User-Id", username)
-                        .header("X-User-Role", role != null ? role : ""))
-                    .build();
+                // Agregar headers personalizados a la petición 
+                ServerWebExchange.Builder exchangeBuilder = exchange.mutate()
+                    .request(builder -> {
+                        builder.header("X-User-Id", username);
+                        builder.header("X-User-Role", role != null ? role : "");
+                        
+                        if (userId != null) {
+                            builder.header("X-User-DB-Id", userId.toString());
+                        }
+                        
+                        if (pacienteId != null) {
+                            builder.header("X-Patient-Id", pacienteId.toString());
+                        }
+                        
+                        if (empleadoId != null) {
+                            builder.header("X-Employee-Id", empleadoId.toString());
+                        }
+                    });
+                
+                ServerWebExchange modifiedExchange = exchangeBuilder.build();
                 
                 logger.debug("Headers agregados correctamente. Continuando con la petición...");
                 

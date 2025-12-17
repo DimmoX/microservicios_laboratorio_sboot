@@ -1,17 +1,25 @@
 package com.gestion_resultados.ms_gestion_resultados.controller;
 
-import com.gestion_resultados.ms_gestion_resultados.model.ResultadoExamenModel;
-import com.gestion_resultados.ms_gestion_resultados.service.resultados.ResultadoService;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import com.gestion_resultados.ms_gestion_resultados.model.ResultadoExamenModel;
+import com.gestion_resultados.ms_gestion_resultados.service.resultados.ResultadoService;
 
 @RestController
 @RequestMapping("/resultados")
@@ -25,18 +33,33 @@ public class ResultadoController {
     }
 
     /**
-     * Listar todos los resultados - Solo LAB_EMPLOYEE y ADMIN
+     * Listar todos los resultados
+     * - PATIENT: Solo ve sus propios resultados (filtrado por pacienteId)
+     * - LAB_EMPLOYEE y ADMIN: Ven todos los resultados
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('LAB_EMPLOYEE', 'ADMIN')")
-    public ResponseEntity<Map<String, Object>> getAllResults() {
-        logger.info("GET: /resultados -> Listar todos los resultados de exámenes");
+    @PreAuthorize("hasAnyRole('PATIENT', 'LAB_EMPLOYEE', 'ADMIN')")
+    public ResponseEntity<Map<String, Object>> getAllResults(
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "X-Patient-Id", required = false) String patientIdStr) {
+        
+        logger.info("GET: /resultados -> Rol: {}, PatientId: {}", userRole, patientIdStr);
 
         Map<String, Object> response = new LinkedHashMap<>();
 
         try {
-            List<ResultadoExamenModel> resultados = service.findAll();
-            logger.info("Se encontraron {} resultados de exámenes", resultados.size());
+            List<ResultadoExamenModel> resultados;
+            
+            // Si es PATIENT, filtrar por su pacienteId
+            if ("ROLE_PATIENT".equals(userRole) && patientIdStr != null) {
+                Long pacienteId = Long.parseLong(patientIdStr);
+                resultados = service.findByPaciente(pacienteId);
+                logger.info("Paciente {} ve {} resultados (filtrados)", pacienteId, resultados.size());
+            } else {
+                // LAB_EMPLOYEE y ADMIN ven todos
+                resultados = service.findAll();
+                logger.info("Usuario con rol {} ve {} resultados (todos)", userRole, resultados.size());
+            }
 
             response.put("code", "000");
             response.put("description", "Resultados de exámenes obtenidos exitosamente");

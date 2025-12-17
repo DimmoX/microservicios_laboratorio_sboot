@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { MockDataService } from '../../services/mock-data.service';
+import { UsuarioService } from '../../services/usuario.service';
 import { Usuario } from '../../models/usuario.model';
 
 @Component({
@@ -16,7 +16,7 @@ export class UsuarioListComponent implements OnInit {
   loading = false;
   errorMessage = '';
 
-  constructor(private mockDataService: MockDataService) {}
+  constructor(private usuarioService: UsuarioService) {}
 
   ngOnInit(): void {
     this.cargarUsuarios();
@@ -24,13 +24,18 @@ export class UsuarioListComponent implements OnInit {
 
   cargarUsuarios(): void {
     this.loading = true;
-    try {
-      this.usuarios = this.mockDataService.getUsers();
-      this.loading = false;
-    } catch (error: any) {
-      this.errorMessage = 'Error al cargar usuarios: ' + error.message;
-      this.loading = false;
-    }
+    this.errorMessage = '';
+    
+    this.usuarioService.getUsuarios().subscribe({
+      next: (data) => {
+        this.usuarios = data;
+        this.loading = false;
+      },
+      error: (error) => {
+        this.errorMessage = 'Error al cargar usuarios: ' + error.message;
+        this.loading = false;
+      }
+    });
   }
 
   getRolLabel(rol: string): string {
@@ -45,13 +50,14 @@ export class UsuarioListComponent implements OnInit {
   toggleEstado(usuario: Usuario): void {
     const accion = usuario.activo ? 'desactivar' : 'activar';
     if (confirm(`¿Está seguro de ${accion} a ${usuario.nombre}?`)) {
-      const db = this.mockDataService.getDatabase();
-      const index = db.users.findIndex(u => u.id === usuario.id);
-      if (index >= 0) {
-        db.users[index].activo = !db.users[index].activo;
-        this.mockDataService.saveDatabase(db);
-        this.cargarUsuarios();
-      }
+      this.usuarioService.actualizarUsuario(usuario.id!, { activo: !usuario.activo }).subscribe({
+        next: () => {
+          this.cargarUsuarios();
+        },
+        error: (error) => {
+          alert('Error al actualizar usuario: ' + error.message);
+        }
+      });
     }
   }
 
@@ -60,14 +66,15 @@ export class UsuarioListComponent implements OnInit {
     if (!usuario) return;
 
     if (confirm(`¿Está seguro de eliminar a ${usuario.nombre}? Esta acción no se puede deshacer.`)) {
-      const db = this.mockDataService.getDatabase();
-      const index = db.users.findIndex(u => u.id === id);
-      if (index >= 0) {
-        db.users.splice(index, 1);
-        this.mockDataService.saveDatabase(db);
-        this.cargarUsuarios();
-        alert('Usuario eliminado exitosamente');
-      }
+      this.usuarioService.eliminarUsuario(id).subscribe({
+        next: () => {
+          this.cargarUsuarios();
+          alert('Usuario eliminado exitosamente');
+        },
+        error: (error) => {
+          alert('Error al eliminar usuario: ' + error.message);
+        }
+      });
     }
   }
 }
