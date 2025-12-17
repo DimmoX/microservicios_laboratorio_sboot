@@ -1,119 +1,73 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { LabExam } from '../models/lab-exam.model';
-import { MockDataService } from './mock-data.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LabExamService {
-  constructor(private mockDataService: MockDataService) {}
+  private apiUrl = `${environment.apiUrl}/lab-exams`;
+
+  constructor(private http: HttpClient) {}
 
   /**
    * Obtener todas las relaciones lab-exam (precios)
-   * Simula endpoint: GET /lab-exam
+   * Endpoint: GET /lab-exams
    */
   getLabExams(): Observable<LabExam[]> {
-    return of(null).pipe(
-      delay(200),
-      map(() => {
-        const labExams = this.mockDataService.getLabExams();
-        const labs = this.mockDataService.getLaboratorios();
-        const exams = this.mockDataService.getExamenes();
-
-        // Enriquecer con nombres
-        return labExams.map(le => ({
-          id: le.id,
-          idLaboratorio: le.labId,
-          idExamen: le.examenId,
-          precio: le.precio,
-          nombreLab: labs.find(l => l.id === le.labId)?.nombre,
-          nombreExamen: exams.find(e => e.id === le.examenId)?.nombre
-        }));
-      })
+    return this.http.get<any>(this.apiUrl).pipe(
+      map(response => response.data || [])
     );
   }
 
   /**
    * Obtener exámenes de un laboratorio
+   * Endpoint: GET /lab-exams/lab/{labId}
    */
   getExamenesPorLab(labId: number): Observable<LabExam[]> {
-    return this.getLabExams().pipe(
-      map(labExams => labExams.filter(le => le.idLaboratorio === labId))
+    return this.http.get<any>(`${this.apiUrl}/lab/${labId}`).pipe(
+      map(response => response.data || [])
     );
   }
 
   /**
    * Obtener laboratorios que ofrecen un examen
+   * Endpoint: GET /lab-exams/exam/{examId}
    */
   getLabsPorExamen(examId: number): Observable<LabExam[]> {
-    return this.getLabExams().pipe(
-      map(labExams => labExams.filter(le => le.idExamen === examId))
+    return this.http.get<any>(`${this.apiUrl}/exam/${examId}`).pipe(
+      map(response => response.data || [])
     );
   }
 
   /**
    * Crear nueva relación lab-exam
-   * Simula endpoint: POST /lab-exam (requiere ADMIN)
+   * Endpoint: POST /lab-exams (requiere ADMIN)
    */
   crearLabExam(labExam: LabExam): Observable<LabExam> {
-    return of(null).pipe(
-      delay(300),
-      map(() => {
-        const db = this.mockDataService.getDatabase();
-        const newLabExam = {
-          id: db.labExams.length + 1,
-          labId: labExam.idLaboratorio,
-          examenId: labExam.idExamen,
-          precio: labExam.precio,
-          disponible: true
-        };
-        db.labExams.push(newLabExam);
-        this.mockDataService.saveDatabase(db);
-        return labExam;
-      })
+    return this.http.post<any>(this.apiUrl, labExam).pipe(
+      map(response => response.data)
     );
   }
 
   /**
    * Actualizar relación lab-exam
-   * Simula endpoint: PUT /lab-exam/{id} (requiere ADMIN)
+   * Endpoint: PUT /lab-exams/{id} (requiere ADMIN)
    */
   actualizarLabExam(id: number, labExam: LabExam): Observable<LabExam> {
-    return of(null).pipe(
-      delay(300),
-      map(() => {
-        const db = this.mockDataService.getDatabase();
-        const index = db.labExams.findIndex(le => le.id === id);
-        if (index >= 0) {
-          db.labExams[index] = {
-            ...db.labExams[index],
-            precio: labExam.precio
-          };
-          this.mockDataService.saveDatabase(db);
-        }
-        return labExam;
-      })
+    return this.http.put<any>(`${this.apiUrl}/${id}`, labExam).pipe(
+      map(response => response.data)
     );
   }
 
   /**
    * Eliminar relación
-   * Simula endpoint: DELETE /lab-exam/{id} (requiere ADMIN)
+   * Endpoint: DELETE /lab-exams/{id} (requiere ADMIN)
    */
   eliminarLabExam(id: number): Observable<any> {
-    return of(null).pipe(
-      delay(200),
-      map(() => {
-        const db = this.mockDataService.getDatabase();
-        const index = db.labExams.findIndex(le => le.id === id);
-        if (index >= 0) {
-          db.labExams.splice(index, 1);
-          this.mockDataService.saveDatabase(db);
-        }
-        return { code: '000', description: 'Relación eliminada exitosamente' };
-      })
-    );
+    return this.http.delete<any>(`${this.apiUrl}/${id}`);
   }
 }
