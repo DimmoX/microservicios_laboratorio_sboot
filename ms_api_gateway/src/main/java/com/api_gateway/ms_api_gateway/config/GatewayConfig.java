@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * Define todas las rutas públicas y privadas del sistema.
  *
  * NOTA: La validación JWT se maneja con JwtGlobalFilter,
- * por lo que las rutas aquí solo definen el enrutamiento.
+ * y AddUserHeadersFilter (global) agrega los headers X-User-Id y X-User-Role.
  */
 @Configuration
 public class GatewayConfig {
@@ -54,10 +54,10 @@ public class GatewayConfig {
             // RUTAS PRIVADAS (requieren JWT)
             // ==========================================
 
-            // Obtener lista de usuarios / usuario por id
-            .route("users-service-read-only", r -> r
+            // Usuarios (GET, POST, PUT, DELETE)
+            .route("users-service", r -> r
                 .path("/users/**")
-                .and().method("GET")
+                .and().method("GET", "POST", "PUT", "DELETE")
                 .uri(usersServiceUrl))
 
             // Registro de empleado
