@@ -12,4 +12,6 @@ export interface ResultadoExamen {
   unidad?: string;
   observacion?: string;
   estado: string;
+  pacienteNombre?: string;
+  examenNombre?: string;
 }
