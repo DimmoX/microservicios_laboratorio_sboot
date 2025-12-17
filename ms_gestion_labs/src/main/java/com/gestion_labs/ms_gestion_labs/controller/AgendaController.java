@@ -29,7 +29,7 @@ public class AgendaController {
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('LAB_EMPLOYEE', 'ADMIN')")
-    public ResponseEntity<Map<String, Object>> all() {
+    public ResponseEntity<Map<String, Object>> getAllAppointments() {
         logger.info("GET: /agenda -> Listar todas las agendas de exámenes");
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -60,7 +60,7 @@ public class AgendaController {
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('LAB_EMPLOYEE', 'ADMIN')")
-    public ResponseEntity<Map<String, Object>> one(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> getAppointmentById(@PathVariable Long id) {
         logger.info("GET: /agenda/{} -> Obtener agenda de examen por ID", id);
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -93,7 +93,7 @@ public class AgendaController {
      */
     @GetMapping("/paciente/{pacienteId}")
     @PreAuthorize("hasAnyRole('PATIENT', 'LAB_EMPLOYEE', 'ADMIN')")
-    public ResponseEntity<Map<String, Object>> byPaciente(@PathVariable Long pacienteId) {
+    public ResponseEntity<Map<String, Object>> getAppointmentsByPatient(@PathVariable Long pacienteId) {
         logger.info("GET: /agenda/paciente/{} -> Listar agendas de exámenes por paciente", pacienteId);
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -126,7 +126,7 @@ public class AgendaController {
      */
     @PostMapping
     @PreAuthorize("hasRole('PATIENT')")
-    public ResponseEntity<Map<String, Object>> create(@RequestBody AgendaExamenModel m) {
+    public ResponseEntity<Map<String, Object>> createAppointment(@RequestBody AgendaExamenModel m) {
         logger.info("POST: /agenda -> Crear nueva agenda de examen");
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -158,7 +158,7 @@ public class AgendaController {
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @RequestBody AgendaExamenModel m) {
+    public ResponseEntity<Map<String, Object>> updateAppointment(@PathVariable Long id, @RequestBody AgendaExamenModel m) {
         logger.info("PUT: /agenda/{} -> Actualizar agenda de examen", id);
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -189,7 +189,7 @@ public class AgendaController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> deleteAppointment(@PathVariable Long id) {
         logger.info("DELETE: /agenda/{} -> Eliminar agenda de examen", id);
         
         Map<String, Object> response = new LinkedHashMap<>();

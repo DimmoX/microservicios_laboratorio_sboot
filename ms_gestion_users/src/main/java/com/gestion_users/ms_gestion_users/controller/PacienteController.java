@@ -26,7 +26,7 @@ public class PacienteController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'LAB_EMPLOYEE')")
-    public ResponseEntity<Map<String, Object>> getAll() {
+    public ResponseEntity<Map<String, Object>> getAllPatients() {
         logger.info("GET: /pacientes -> Listar todos los pacientes");
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -54,7 +54,7 @@ public class PacienteController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'LAB_EMPLOYEE')")
-    public ResponseEntity<Map<String, Object>> getById(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> getPatientById(@PathVariable Long id) {
         logger.info("GET: /pacientes/{} -> Obtener paciente por ID", id);
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -82,7 +82,7 @@ public class PacienteController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> create(@RequestBody PacienteModel paciente) {
+    public ResponseEntity<Map<String, Object>> createPatient(@RequestBody PacienteModel paciente) {
         logger.info("POST: /pacientes -> Crear nuevo paciente");
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -110,7 +110,7 @@ public class PacienteController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @RequestBody PacienteModel paciente) {
+    public ResponseEntity<Map<String, Object>> updatePatient(@PathVariable Long id, @RequestBody PacienteModel paciente) {
         logger.info("PUT: /pacientes/{} -> Actualizar paciente", id);
         
         Map<String, Object> response = new LinkedHashMap<>();
@@ -138,7 +138,7 @@ public class PacienteController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> deletePatient(@PathVariable Long id) {
         logger.info("DELETE: /pacientes/{} -> Eliminar paciente", id);
         
         Map<String, Object> response = new LinkedHashMap<>();

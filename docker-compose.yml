@@ -26,14 +26,16 @@ services:
       - APP_JWT_EXP_MIN=120
 
       # URLs de los microservicios (usando nombres de contenedores)
-      - APP_SERVICES_USERS=http://users-service:8082
+      - APP_SERVICES_USERS=http://users-service:8083
       - APP_SERVICES_LABS=http://labs-service:8081
+      - APP_SERVICES_RESULTADOS=http://resultados-service:8082
 
       # Java Options
       - JAVA_OPTS=-Xms256m -Xmx512m -XX:+UseG1GC
     depends_on:
       - labs-service
       - users-service
+      - resultados-service
     networks:
       - labs_network
     restart: unless-stopped
@@ -79,6 +81,46 @@ services:
     restart: unless-stopped
 
   # ========================================
+  # Microservicio de Resultados
+  # ========================================
+  resultados-service:
+    container_name: gestion_labs_resultados
+    build:
+      context: ./ms_gestion_resultados
+      dockerfile: Dockerfile
+    expose:
+      - "8082"
+    environment:
+      # Configuración de Spring Boot
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8082
+
+      # Configuración de Base de Datos Oracle
+      - SPRING_DATASOURCE_URL=jdbc:oracle:thin:@databasefullstack3_tp?TNS_ADMIN=/app/wallet
+      - SPRING_DATASOURCE_USERNAME=ADMIN
+      - SPRING_DATASOURCE_PASSWORD=DataBaseFullStack3#
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=oracle.jdbc.OracleDriver
+
+      # JPA/Hibernate
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=none
+      - SPRING_JPA_SHOW_SQL=false
+
+      # JWT Configuration
+      - APP_JWT_SECRET=ubOJAPgPhBFu8zs3ztDtQBOZ2cdZ6ArHplrwneqabTkotIdzq2Nd60QT8X6M+viBh1TIi8Oz3ffq62wrZZygRw==
+      - APP_JWT_EXP_MIN=120
+
+      # Java Options
+      - JAVA_OPTS=-Xms256m -Xmx512m -XX:+UseG1GC
+    volumes:
+      # Montar wallet de Oracle
+      - ./wallet/Wallet_databaseFullStack3:/app/wallet:ro
+      # Logs persistentes
+      - ./logs/resultados-service:/app/logs
+    networks:
+      - labs_network
+    restart: unless-stopped
+
+  # ========================================
   # Microservicio de Usuarios
   # ========================================
   users-service:
@@ -87,11 +129,11 @@ services:
       context: ./ms_gestion_users
       dockerfile: Dockerfile
     expose:
-      - "8082"
+      - "8083"
     environment:
       # Configuración de Spring Boot
       - SPRING_PROFILES_ACTIVE=prod
-      - SERVER_PORT=8082
+      - SERVER_PORT=8083
 
       # Configuración de Base de Datos Oracle
       - SPRING_DATASOURCE_URL=jdbc:oracle:thin:@databasefullstack3_tp?TNS_ADMIN=/app/wallet

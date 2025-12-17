@@ -1,4 +1,4 @@
-package com.gestion_labs.ms_gestion_labs.model;
+package com.gestion_resultados.ms_gestion_resultados.model;
 
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
@@ -26,21 +26,25 @@ public class ResultadoExamenModel {
     @Column(name="empleado_id", nullable=false)
     private Long empleadoId; // quien emite
 
-    @Column(name="fecha_muestra")
+    @Column(name="fecha_muestra", nullable=false)
     private OffsetDateTime fechaMuestra;
 
     @Column(name="fecha_resultado")
     private OffsetDateTime fechaResultado;
 
-    private String valor;       // texto/JSON
-    private String unidad;
+    @Column(nullable=false)
+    private String valor;       // texto/JSON con los resultados del examen
+
+    @Column(nullable=false)
+    private String unidad;      // unidad de medida (mg/dL, g/L, etc.)
+
     private String observacion;
 
     @Column(nullable=false)
     private String estado = "PENDIENTE"; // PENDIENTE | EMITIDO | ANULADO
 
     // Getters/Setters
-    
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getAgendaId() { return agendaId; }

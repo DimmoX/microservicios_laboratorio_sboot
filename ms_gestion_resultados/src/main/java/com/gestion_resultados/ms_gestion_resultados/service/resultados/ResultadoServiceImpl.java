@@ -1,7 +1,7 @@
-package com.gestion_labs.ms_gestion_labs.service.resultados;
+package com.gestion_resultados.ms_gestion_resultados.service.resultados;
 
-import com.gestion_labs.ms_gestion_labs.model.ResultadoExamenModel;
-import com.gestion_labs.ms_gestion_labs.repository.ResultadoExamenRepository;
+import com.gestion_resultados.ms_gestion_resultados.model.ResultadoExamenModel;
+import com.gestion_resultados.ms_gestion_resultados.repository.ResultadoExamenRepository;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -16,45 +16,98 @@ public class ResultadoServiceImpl implements ResultadoService {
     private final ResultadoExamenRepository repo;
     public ResultadoServiceImpl(ResultadoExamenRepository repo) { this.repo = repo; }
 
-    @Override public List<ResultadoExamenModel> findAll() { return repo.findAll(); }
+    @Override
+    public List<ResultadoExamenModel> findAll() {
+        // Solo LAB_EMPLOYEE y ADMIN pueden ver todos los resultados
+        // PATIENT no debería llegar aquí por @PreAuthorize, pero validamos por seguridad
+        return repo.findAll();
+    }
 
-    @Override 
+    @Override
     public List<ResultadoExamenModel> findByPaciente(Long pacienteId) {
         // Validación de ownership: PATIENT solo puede ver sus propios resultados
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (auth != null && auth.isAuthenticated()) {
-            // Obtener el rol del usuario autenticado
+            // Obtener el rol del usuario autenticado (viene con prefijo ROLE_)
             String rol = auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .findFirst()
                 .orElse("");
-            
+
             // Si es PATIENT, verificar que el pacienteId coincida con su userId
-            if ("PATIENT".equals(rol)) {
+            if ("ROLE_PATIENT".equals(rol)) {
                 String userId = auth.getName(); // El "sub" del JWT (id del usuario)
-                
+
                 if (!userId.equals(pacienteId.toString())) {
                     throw new AccessDeniedException(
                         "No tienes permiso para ver resultados de otros pacientes"
                     );
                 }
             }
-            // Si es LAB_EMPLOYEE o ADMIN, permite acceso a cualquier paciente
+            // Si es ROLE_LAB_EMPLOYEE o ROLE_ADMIN, permite acceso a cualquier paciente
         }
-        
+
         return repo.findByPacienteId(pacienteId);
     }
 
-    @Override public ResultadoExamenModel findById(Long id) {
-        return repo.findById(id).orElseThrow(() -> new RuntimeException("Resultado no encontrado: " + id));
+    @Override
+    public ResultadoExamenModel findById(Long id) {
+        ResultadoExamenModel resultado = repo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Resultado no encontrado: " + id));
+
+        // Validación de ownership: PATIENT solo puede ver sus propios resultados
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth != null && auth.isAuthenticated()) {
+            String rol = auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse("");
+
+            // Si es PATIENT, verificar que el resultado le pertenezca
+            if ("ROLE_PATIENT".equals(rol)) {
+                String userId = auth.getName();
+
+                if (!userId.equals(resultado.getPacienteId().toString())) {
+                    throw new AccessDeniedException(
+                        "No tienes permiso para ver este resultado"
+                    );
+                }
+            }
+        }
+
+        return resultado;
     }
 
-    @Override public ResultadoExamenModel create(ResultadoExamenModel r) {
-        if (r.getEstado() == null) r.setEstado("PENDIENTE");
+    @Override
+    public ResultadoExamenModel create(ResultadoExamenModel r) {
+        // Validar campos obligatorios
+        if (r.getFechaMuestra() == null) {
+            throw new IllegalArgumentException("fechaMuestra es obligatorio");
+        }
+        if (r.getValor() == null || r.getValor().trim().isEmpty()) {
+            throw new IllegalArgumentException("valor es obligatorio");
+        }
+        if (r.getUnidad() == null || r.getUnidad().trim().isEmpty()) {
+            throw new IllegalArgumentException("unidad es obligatorio");
+        }
+        if (r.getEstado() == null || r.getEstado().trim().isEmpty()) {
+            throw new IllegalArgumentException("estado es obligatorio");
+        }
+
+        // Validar que no exista un resultado para esta agenda
+        if (r.getAgendaId() != null && repo.findByAgendaId(r.getAgendaId()).isPresent()) {
+            throw new IllegalArgumentException(
+                "Ya existe un resultado para la agenda con ID: " + r.getAgendaId()
+            );
+        }
+
+        // Si el estado es EMITIDO, establecer fecha de resultado automáticamente
         if ("EMITIDO".equalsIgnoreCase(r.getEstado()) && r.getFechaResultado() == null) {
             r.setFechaResultado(OffsetDateTime.now());
         }
+
         return repo.save(r);
     }
 

@@ -22,6 +22,9 @@ public class GatewayConfig {
     @Value("${app.services.labs}")
     private String labsServiceUrl;
 
+    @Value("${app.services.resultados}")
+    private String resultadosServiceUrl;
+
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
@@ -92,13 +95,13 @@ public class GatewayConfig {
 
             // Agendas (GET, POST, PUT, DELETE)
             .route("agendas-service", r -> r
-                .path("/agendas/**")
+                .path("/agenda/**")
                 .uri(labsServiceUrl))
 
             // Resultados (GET, POST, PUT, DELETE)
             .route("results-service", r -> r
-                .path("/results/**")
-                .uri(labsServiceUrl))
+                .path("/resultados/**")
+                .uri(resultadosServiceUrl))
 
             // Lab-Exams (GET, POST, PUT, DELETE)
             .route("lab-exams-service", r -> r

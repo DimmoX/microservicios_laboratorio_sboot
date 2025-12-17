@@ -1,6 +1,6 @@
-package com.gestion_labs.ms_gestion_labs.service.resultados;
+package com.gestion_resultados.ms_gestion_resultados.service.resultados;
 
-import com.gestion_labs.ms_gestion_labs.model.ResultadoExamenModel;
+import com.gestion_resultados.ms_gestion_resultados.model.ResultadoExamenModel;
 import java.util.List;
 
 public interface ResultadoService {
