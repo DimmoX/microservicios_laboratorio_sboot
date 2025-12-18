@@ -9,7 +9,7 @@ import { Usuario } from './models/usuario.model';
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   template: `
-    <div class="d-flex flex-column min-vh-100">
+    <div class="d-flex flex-column min-vh-100" style="background: linear-gradient(135deg, #3D7699 0%, #7AADCC 100%);">
       <!-- Navbar Bootstrap Responsive -->
       <nav class="navbar navbar-expand-xl navbar-light bg-white shadow-sm sticky-top">
         <div class="container-fluid px-3 px-md-4 px-xl-5">
@@ -17,8 +17,8 @@ import { Usuario } from './models/usuario.model';
           <a class="navbar-brand d-flex align-items-center" routerLink="/" style="cursor: pointer;">
             <span style="font-size: 2rem;">🧬</span>
             <div class="ms-2">
-              <div class="fw-bold text-primary" style="font-size: 1rem; line-height: 1.2;">Laboratorio Clínico</div>
-              <div class="fw-bold" style="font-size: 1.2rem; color: #075985; letter-spacing: -0.5px; line-height: 1;">Andino</div>
+              <div class="fw-bold" style="font-size: 1rem; line-height: 1.2; color: #3D7699;">Laboratorio Clínico</div>
+              <div class="fw-bold" style="font-size: 1.2rem; color: #144766; letter-spacing: -0.5px; line-height: 1;">Andino</div>
             </div>
           </a>
           
@@ -131,34 +131,34 @@ import { Usuario } from './models/usuario.model';
       </main>
       
       <!-- Footer Bootstrap -->
-      <footer class="bg-dark text-white py-4">
+      <footer class="py-4" style="background-color: #144766; color: white;">
         <div class="container">
           <div class="row g-4">
             <div class="col-md-4">
-              <h5 class="text-info">🏥 Laboratorio Clínico Andino</h5>
+              <h5 style="color: #7AADCC;">🏥 Laboratorio Clínico Andino</h5>
               <p class="small">Excelencia en diagnóstico clínico desde 1995</p>
             </div>
             <div class="col-md-4">
-              <h6 class="text-info">Contacto</h6>
+              <h6 style="color: #7AADCC;">Contacto</h6>
               <p class="small mb-1">📞 +56 2 2345 6789</p>
               <p class="small mb-0">✉️ contacto&#64;laboratorioandino.cl</p>
             </div>
             <div class="col-md-4">
-              <h6 class="text-info">Enlaces Rápidos</h6>
-              <a routerLink="/nosotros" class="d-block text-white-50 text-decoration-none small mb-1">Nosotros</a>
-              <a routerLink="/servicios" class="d-block text-white-50 text-decoration-none small mb-1">Servicios</a>
-              <a routerLink="/contacto" class="d-block text-white-50 text-decoration-none small">Contacto</a>
+              <h6 style="color: #7AADCC;">Enlaces Rápidos</h6>
+              <a routerLink="/nosotros" class="d-block text-decoration-none small mb-1" style="color: rgba(255,255,255,0.7);">Nosotros</a>
+              <a routerLink="/servicios" class="d-block text-decoration-none small mb-1" style="color: rgba(255,255,255,0.7);">Servicios</a>
+              <a routerLink="/contacto" class="d-block text-decoration-none small" style="color: rgba(255,255,255,0.7);">Contacto</a>
             </div>
           </div>
-          <hr class="border-secondary my-3">
-          <p class="text-center text-secondary small mb-0">© 2025 Laboratorio Clínico Andino - DUOC UC</p>
+          <hr style="border-color: rgba(122, 173, 204, 0.3);" class="my-3">
+          <p class="text-center small mb-0" style="color: rgba(255,255,255,0.6);">© 2025 Laboratorio Clínico Andino - DUOC UC</p>
         </div>
       </footer>
     </div>
   `,
   styles: [`
     .nav-link {
-      color: #4b5563;
+      color: #144766;
       font-weight: 500;
       padding: 0.5rem 0.875rem;
       border-radius: 6px;
@@ -166,12 +166,12 @@ import { Usuario } from './models/usuario.model';
     }
     
     .nav-link:hover {
-      background-color: #f0f9ff;
-      color: #0369a1;
+      background-color: rgba(122, 173, 204, 0.1);
+      color: #3D7699;
     }
     
     .nav-link.active {
-      background: linear-gradient(135deg, #0369a1 0%, #06b6d4 100%);
+      background: linear-gradient(135deg, #3D7699 0%, #144766 100%);
       color: white !important;
     }
     
@@ -181,12 +181,46 @@ import { Usuario } from './models/usuario.model';
     }
     
     .dropdown-item:hover {
-      background-color: #f0f9ff;
-      color: #0369a1;
+      background-color: rgba(122, 173, 204, 0.15);
+      color: #3D7699;
     }
     
     footer a:hover {
-      color: #67e8f9 !important;
+      color: #7AADCC !important;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3D7699 0%, #144766 100%);
+      border: none;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #144766 0%, #00263E 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(61, 118, 153, 0.3);
+    }
+
+    .btn-outline-primary {
+      color: #3D7699;
+      border-color: #3D7699;
+    }
+
+    .btn-outline-primary:hover {
+      background-color: #3D7699;
+      border-color: #3D7699;
+      color: white;
+    }
+
+    /* Asegurar que no haya espacios ni fondos extraños */
+    nav.navbar {
+      margin-bottom: 0 !important;
+    }
+
+    main {
+      background: transparent !important;
+      padding: 0;
+      margin: 0;
     }
   `]
 })
