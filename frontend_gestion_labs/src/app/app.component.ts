@@ -11,8 +11,8 @@ import { Usuario } from './models/usuario.model';
   template: `
     <div class="d-flex flex-column min-vh-100">
       <!-- Navbar Bootstrap Responsive -->
-      <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
-        <div class="container-fluid px-3 px-lg-4">
+      <nav class="navbar navbar-expand-xl navbar-light bg-white shadow-sm sticky-top">
+        <div class="container-fluid px-3 px-md-4 px-xl-5">
           <!-- Brand/Logo -->
           <a class="navbar-brand d-flex align-items-center" routerLink="/" style="cursor: pointer;">
             <span style="font-size: 2rem;">🧬</span>
@@ -30,7 +30,7 @@ import { Usuario } from './models/usuario.model';
           
           <!-- Navbar Links -->
           <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto align-items-lg-center">
+            <ul class="navbar-nav ms-auto align-items-xl-center">
               <!-- Public Links -->
               <li class="nav-item">
                 <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Inicio</a>
@@ -90,24 +90,24 @@ import { Usuario } from './models/usuario.model';
 
               <!-- Guest User Buttons -->
               <ng-container *ngIf="!isAuthenticated">
-                <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
-                  <a class="btn btn-outline-primary btn-sm w-100 w-lg-auto" routerLink="/login">Ingresar</a>
+                <li class="nav-item ms-xl-2 mt-2 mt-xl-0">
+                  <a class="btn btn-outline-primary btn-sm w-100 w-xl-auto" routerLink="/login">Ingresar</a>
                 </li>
-                <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
-                  <a class="btn btn-primary btn-sm w-100 w-lg-auto" routerLink="/register">Registro</a>
+                <li class="nav-item ms-xl-2 mt-2 mt-xl-0">
+                  <a class="btn btn-primary btn-sm w-100 w-xl-auto" routerLink="/register">Registro</a>
                 </li>
               </ng-container>
 
               <!-- User Dropdown -->
               <ng-container *ngIf="isAuthenticated">
-                <li class="nav-item dropdown ms-lg-2 mt-2 mt-lg-0">
+                <li class="nav-item dropdown ms-xl-2 mt-2 mt-xl-0">
                   <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" 
-                     data-bs-toggle="dropdown" aria-expanded="false">
+                     data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
                     <span class="me-2">👤</span>
                     <span>{{currentUser?.nombre || 'Usuario'}}</span>
                   </a>
-                  <ul class="dropdown-menu dropdown-menu-end">
-                    <li><h6 class="dropdown-header">{{currentUser?.nombre}}</h6></li>
+                  <ul class="dropdown-menu dropdown-menu-end mt-2 shadow border-0" aria-labelledby="userDropdown">
+                    <li><h6 class="dropdown-header text-truncate">{{currentUser?.nombre}}</h6></li>
                     <li><span class="dropdown-item-text small">
                       <span class="badge" [class.bg-warning]="isAdmin" [class.bg-info]="isLabEmployee" [class.bg-success]="isPatient">
                         {{userRoleLabel}}
@@ -157,7 +157,6 @@ import { Usuario } from './models/usuario.model';
     </div>
   `,
   styles: [`
-    /* Personalización de Bootstrap */
     .nav-link {
       color: #4b5563;
       font-weight: 500;
@@ -188,12 +187,6 @@ import { Usuario } from './models/usuario.model';
     
     footer a:hover {
       color: #67e8f9 !important;
-    }
-    
-    @media (max-width: 991px) {
-      .nav-item {
-        margin-top: 0.5rem;
-      }
     }
   `]
 })
