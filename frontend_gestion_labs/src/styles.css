@@ -1,4 +1,10 @@
-/* Estilos globales para la aplicación - Laboratorio Clínico Andino */
+/* =================================================================
+   LABORATORIO CLÍNICO ANDINO - Estilos con Bootstrap 5
+   ================================================================= */
+
+/* Importar Bootstrap - ya configurado en angular.json */
+
+/* Colores corporativos personalizados del laboratorio */
 :root {
   /* Colores corporativos del laboratorio */
   --primary-color: #0369a1; /* Azul médico profesional */
@@ -15,6 +21,15 @@
   --gray-600: #4b5563;
   --gray-900: #111827;
   --white: #ffffff;
+  
+  /* Override de colores de Bootstrap */
+  --bs-primary: #0369a1;
+  --bs-primary-rgb: 3, 105, 161;
+  --bs-secondary: #06b6d4;
+  --bs-success: #10b981;
+  --bs-danger: #ef4444;
+  --bs-warning: #f59e0b;
+  --bs-info: #0ea5e9;
 }
 
 * {
@@ -24,16 +39,60 @@
 }
 
 body {
-  font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif !important;
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
   min-height: 100vh;
-  padding: 20px;
   color: var(--gray-900);
   line-height: 1.6;
 }
 
+/* Personalización de componentes Bootstrap */
+.btn-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+}
+
+.btn-success {
+  background-color: var(--success-color) !important;
+  border-color: var(--success-color) !important;
+}
+
+.btn-danger {
+  background-color: var(--danger-color) !important;
+  border-color: var(--danger-color) !important;
+}
+
+.card {
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  border: none !important;
+}
+
+.badge {
+  font-weight: 600 !important;
+}
+
+/* Mobile - hasta 767px */
 @media (max-width: 767px) {
+  body { padding: 0; }
+}
+
+/* Tablet - 768px a 1023px */
+@media (min-width: 768px) and (max-width: 1023px) {
+  body { padding: 0; }
+}
+
+/* Optimización para pantallas medianas pequeñas (tablets pequeñas) */
+@media (min-width: 768px) and (max-width: 900px) {
   body { padding: 10px; }
+  .container { padding: 15px; }
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.3rem; }
 }
 
 .container {
@@ -273,16 +332,35 @@ nav a {
   color: var(--primary-color);
   font-weight: 600;
   transition: color 0.3s;
+  display: inline-block;
+  padding: 8px 12px;
 }
 
 nav a:hover, nav a.active {
   color: var(--primary-dark);
+  background: var(--gray-100);
+  border-radius: 6px;
 }
 
 @media (max-width: 767px) {
+  nav { 
+    padding: 10px 15px;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
   nav a { 
-    margin-right: 10px; 
-    font-size: 14px;
+    margin-right: 8px; 
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  nav { padding: 12px 20px; }
+  nav a { 
+    margin-right: 15px; 
+    font-size: 15px;
   }
 }
 
