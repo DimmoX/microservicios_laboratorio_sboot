@@ -138,20 +138,72 @@
   background: #d1d5db;
 }
 
-@media (max-width: 768px) {
+/* Responsive Design - Mobile First */
+
+/* Mobile (< 768px) */
+@media (max-width: 767px) {
+  .form-container {
+    padding: 1rem 0.5rem;
+  }
+
   .form-row {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .form-card {
     padding: 1.5rem;
+    border-radius: 12px;
+  }
+  
+  .form-card h2 {
+    font-size: 1.4rem;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .form-control {
+    padding: 10px 12px;
+    font-size: 16px; /* Previene zoom en iOS */
   }
 
   .form-actions {
     flex-direction: column;
+    margin-top: 1.5rem;
   }
 
   .btn {
     width: 100%;
+    margin: 0;
   }
 }
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .form-container {
+    padding: 3rem 1.5rem;
+  }
+
+  .form-card {
+    padding: 2rem;
+    max-width: 700px;
+  }
+  
+  .form-row {
+    gap: 1.25rem;
+  }
+
+  .form-actions {
+    justify-content: center;
+  }
+}
+
+/* Desktop (> 1024px) - Default styles work well */
+@media (min-width: 1024px) {
+  .form-card:hover {
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
+  }
+}
+
