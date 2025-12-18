@@ -1,5 +1,6 @@
 package com.gestion_labs.ms_gestion_labs.controller;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,9 +17,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.gestion_labs.ms_gestion_labs.dto.LabExamDTO;
+import com.gestion_labs.ms_gestion_labs.dto.LaboratorioDTO;
+import com.gestion_labs.ms_gestion_labs.model.ExamenModel;
 import com.gestion_labs.ms_gestion_labs.model.LabExamKey;
 import com.gestion_labs.ms_gestion_labs.model.LabExamModel;
+import com.gestion_labs.ms_gestion_labs.service.examen.ExamenService;
 import com.gestion_labs.ms_gestion_labs.service.lab_exam.LabExamService;
+import com.gestion_labs.ms_gestion_labs.service.laboratorio.LaboratorioService;
 
 @RestController 
 @RequestMapping("/lab-exams")
@@ -26,9 +32,13 @@ public class LabExamController {
 
     private static final Logger logger = LoggerFactory.getLogger(LabExamController.class);
     private final LabExamService service;
+    private final LaboratorioService laboratorioService;
+    private final ExamenService examenService;
     
-    public LabExamController(LabExamService service) { 
-        this.service = service; 
+    public LabExamController(LabExamService service, LaboratorioService laboratorioService, ExamenService examenService) { 
+        this.service = service;
+        this.laboratorioService = laboratorioService;
+        this.examenService = examenService;
     }
 
     @GetMapping
@@ -39,11 +49,39 @@ public class LabExamController {
         
         try {
             List<LabExamModel> labExams = service.listAll();
-            logger.info("Se encontraron {} relaciones laboratorio-examen", labExams.size());
+            List<LabExamDTO> labExamDTOs = new ArrayList<>();
+            
+            for (LabExamModel labExam : labExams) {
+                LabExamDTO dto = new LabExamDTO();
+                dto.setIdLaboratorio(labExam.getId().getIdLaboratorio());
+                dto.setIdExamen(labExam.getId().getIdExamen());
+                dto.setPrecio(labExam.getPrecio());
+                dto.setVigenteDesde(labExam.getVigenteDesde());
+                dto.setVigenteHasta(labExam.getVigenteHasta());
+                
+                // Obtener nombres
+                try {
+                    LaboratorioDTO lab = laboratorioService.findById(labExam.getId().getIdLaboratorio());
+                    dto.setNombreLab(lab.getNombre());
+                } catch (Exception e) {
+                    dto.setNombreLab("Laboratorio no encontrado");
+                }
+                
+                try {
+                    ExamenModel examen = examenService.findById(labExam.getId().getIdExamen());
+                    dto.setNombreExamen(examen.getNombre());
+                } catch (Exception e) {
+                    dto.setNombreExamen("Examen no encontrado");
+                }
+                
+                labExamDTOs.add(dto);
+            }
+            
+            logger.info("Se encontraron {} relaciones laboratorio-examen", labExamDTOs.size());
             
             response.put("code", "000");
             response.put("description", "Relaciones laboratorio-examen obtenidas exitosamente");
-            response.put("data", labExams);
+            response.put("data", labExamDTOs);
             
             return ResponseEntity.ok(response);
             
