@@ -1,0 +1,217 @@
+.pacientes-list {
+  background: linear-gradient(135deg, #0369a1 0%, #06b6d4 100%);
+  min-height: 100vh;
+  padding: 4rem 2rem;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  max-width: 1400px;
+  margin: 0 auto 30px;
+}
+
+.header-section h2 {
+  color: white;
+  font-size: 2rem;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+  margin: 0 4px;
+}
+
+.btn-success {
+  background: #0369a1;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #075985;
+}
+
+.btn-warning {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-warning:hover {
+  background: #d97706;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+.table-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.pacientes-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pacientes-table thead {
+  background: #144766;
+  color: white;
+}
+
+.pacientes-table th {
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pacientes-table tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background 0.2s;
+}
+
+.pacientes-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.pacientes-table td {
+  padding: 16px;
+  color: #374151;
+  font-size: 14px;
+}
+
+.status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status.active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status.inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.action-buttons {
+  white-space: nowrap;
+}
+
+.loading {
+  text-align: center;
+  color: white;
+  font-size: 18px;
+  padding: 40px;
+}
+
+.error {
+  max-width: 1400px;
+  margin: 0 auto 20px;
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #fca5a5;
+}
+
+.empty-state {
+  max-width: 600px;
+  margin: 60px auto;
+}
+
+.empty-card {
+  background: white;
+  border-radius: 12px;
+  padding: 60px 40px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.empty-card h3 {
+  color: #144766;
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+.empty-card p {
+  color: #6b7280;
+  margin-bottom: 24px;
+  font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  .pacientes-table {
+    min-width: 900px;
+  }
+}
+
+@media (max-width: 768px) {
+  .pacientes-list {
+    padding: 2rem 1rem;
+  }
+  
+  .header-section {
+    flex-direction: column;
+    gap: 20px;
+    align-items: stretch;
+  }
+  
+  .header-section h2 {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+  
+  .btn-primary {
+    text-align: center;
+  }
+  
+  .empty-card {
+    padding: 40px 20px;
+  }
+}

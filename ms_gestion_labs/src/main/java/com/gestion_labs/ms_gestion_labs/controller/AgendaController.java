@@ -1,17 +1,24 @@
 package com.gestion_labs.ms_gestion_labs.controller;
 
-import com.gestion_labs.ms_gestion_labs.model.AgendaExamenModel;
-import com.gestion_labs.ms_gestion_labs.service.agenda.AgendaService;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import com.gestion_labs.ms_gestion_labs.dto.AgendaExamenDTO;
+import com.gestion_labs.ms_gestion_labs.service.agenda.AgendaService;
 
 @RestController 
 @RequestMapping("/agenda")
@@ -35,7 +42,7 @@ public class AgendaController {
         Map<String, Object> response = new LinkedHashMap<>();
         
         try {
-            List<AgendaExamenModel> agendas = service.findAll();
+            List<AgendaExamenDTO> agendas = service.findAll();
             logger.info("Se encontraron {} agendas de exámenes", agendas.size());
             
             response.put("code", "000");
@@ -66,7 +73,7 @@ public class AgendaController {
         Map<String, Object> response = new LinkedHashMap<>();
         
         try {
-            AgendaExamenModel agenda = service.findById(id);
+            AgendaExamenDTO agenda = service.findById(id);
             logger.info("Agenda de examen con ID: {} encontrada", id);
             
             response.put("code", "000");
@@ -100,7 +107,7 @@ public class AgendaController {
         
         try {
             // La validación de ownership se realiza en el servicio
-            List<AgendaExamenModel> agendas = service.findByPaciente(pacienteId);
+            List<AgendaExamenDTO> agendas = service.findByPaciente(pacienteId);
             logger.info("Se encontraron {} agendas para paciente ID: {}", agendas.size(), pacienteId);
             
             response.put("code", "000");
@@ -126,14 +133,14 @@ public class AgendaController {
      */
     @PostMapping
     @PreAuthorize("hasRole('PATIENT')")
-    public ResponseEntity<Map<String, Object>> createAppointment(@RequestBody AgendaExamenModel m) {
+    public ResponseEntity<Map<String, Object>> createAppointment(@RequestBody AgendaExamenDTO m) {
         logger.info("POST: /agenda -> Crear nueva agenda de examen");
         
         Map<String, Object> response = new LinkedHashMap<>();
         
         try {
             // La validación de ownership se realiza en el servicio
-            AgendaExamenModel created = service.create(m);
+            AgendaExamenDTO created = service.create(m);
             logger.info("Agenda de examen creada exitosamente con ID: {}", created.getId());
             
             response.put("code", "000");
@@ -158,13 +165,13 @@ public class AgendaController {
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> updateAppointment(@PathVariable Long id, @RequestBody AgendaExamenModel m) {
+    public ResponseEntity<Map<String, Object>> updateAppointment(@PathVariable Long id, @RequestBody AgendaExamenDTO m) {
         logger.info("PUT: /agenda/{} -> Actualizar agenda de examen", id);
         
         Map<String, Object> response = new LinkedHashMap<>();
         
         try {
-            AgendaExamenModel updated = service.update(id, m);
+            AgendaExamenDTO updated = service.update(id, m);
             logger.info("Agenda de examen con ID: {} actualizada exitosamente", id);
             
             response.put("code", "000");
