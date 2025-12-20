@@ -48,11 +48,15 @@ import { Usuario } from './models/usuario.model';
               <!-- Authenticated User Links -->
               <ng-container *ngIf="isAuthenticated">
                 <li class="nav-item">
-                  <a class="nav-link" routerLink="/examenes" routerLinkActive="active">Exámenes</a>
-                </li>
-                <li class="nav-item">
                   <a class="nav-link" routerLink="/precios" routerLinkActive="active">Precios</a>
                 </li>
+
+                <!-- Admin and Lab Employee Links -->
+                <ng-container *ngIf="isAdmin || isLabEmployee">
+                  <li class="nav-item">
+                    <a class="nav-link" routerLink="/examenes" routerLinkActive="active">Exámenes</a>
+                  </li>
+                </ng-container>
 
                 <!-- Admin Links -->
                 <ng-container *ngIf="isAdmin">
@@ -71,9 +75,6 @@ import { Usuario } from './models/usuario.model';
                 <ng-container *ngIf="isLabEmployee">
                   <li class="nav-item">
                     <a class="nav-link" routerLink="/resultados" routerLinkActive="active">Resultados</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" routerLink="/usuarios" routerLinkActive="active">Usuarios</a>
                   </li>
                 </ng-container>
 
@@ -95,6 +96,13 @@ import { Usuario } from './models/usuario.model';
                 </li>
                 <li class="nav-item ms-xl-2 mt-2 mt-xl-0">
                   <a class="btn btn-primary btn-sm w-100 w-xl-auto" routerLink="/register">Registro</a>
+                </li>
+              </ng-container>
+
+              <!-- Dashboard Link -->
+              <ng-container *ngIf="isAuthenticated">
+                <li class="nav-item ms-xl-2 mt-2 mt-xl-0">
+                  <a class="btn btn-primary btn-sm" routerLink="/dashboard">Dashboard</a>
                 </li>
               </ng-container>
 
