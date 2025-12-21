@@ -64,6 +64,9 @@ import { Usuario } from './models/usuario.model';
                     <a class="nav-link" routerLink="/laboratorios" routerLinkActive="active">Laboratorios</a>
                   </li>
                   <li class="nav-item">
+                    <a class="nav-link" routerLink="/admin/lab-exam" routerLinkActive="active">Asignación de Precios</a>
+                  </li>
+                  <li class="nav-item">
                     <a class="nav-link" routerLink="/resultados" routerLinkActive="active">Resultados</a>
                   </li>
                   <li class="nav-item">
@@ -268,7 +271,7 @@ export class AppComponent implements OnInit {
         if (user && user.rol) {
           const rol = user.rol.toUpperCase();
           this.isAdmin = rol === 'ADMIN';
-          this.isLabEmployee = rol === 'LAB_EMPLOYEE';
+          this.isLabEmployee = rol === 'EMPLOYEE';
           this.isPatient = rol === 'PATIENT';
         }
       },
