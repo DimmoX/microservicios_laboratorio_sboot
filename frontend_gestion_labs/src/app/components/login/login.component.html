@@ -89,3 +89,9 @@
     </div>
   </div>
 </div>
+
+<!-- Modal para cambio de contraseña temporal -->
+<app-change-password-modal 
+  *ngIf="showChangePasswordModal"
+  (passwordChanged)="onPasswordChanged()">
+</app-change-password-modal>

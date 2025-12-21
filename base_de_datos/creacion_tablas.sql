@@ -115,6 +115,7 @@ CREATE TABLE users (
   paciente_id  NUMBER,
   empleado_id  NUMBER,
   creado_en    TIMESTAMP DEFAULT SYSTIMESTAMP,
+  password_temporal CHAR(1) DEFAULT 'N' CHECK (password_temporal IN ('S', 'N')),
   CONSTRAINT fk_users_paciente FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE CASCADE,
   CONSTRAINT fk_users_empleado FOREIGN KEY (empleado_id) REFERENCES empleados(id) ON DELETE CASCADE
 );

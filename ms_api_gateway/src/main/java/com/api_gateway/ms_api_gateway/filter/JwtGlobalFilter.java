@@ -38,6 +38,7 @@ public class JwtGlobalFilter implements GlobalFilter, Ordered {
     private static final List<String> PUBLIC_PATHS = List.of(
         "/auth/login",
         "/auth/logout",
+        "/auth/forgot-password",
         "/labs"  // Solo GET /labs y /labs/{id} son públicas, se valida el método después
     );
 
@@ -139,8 +140,8 @@ public class JwtGlobalFilter implements GlobalFilter, Ordered {
     }
     
     private boolean isPublicPath(String path, String method) {
-        // Login y logout son siempre públicos
-        if (path.startsWith("/auth/login") || path.startsWith("/auth/logout")) {
+        // Login, logout y forgot-password son siempre públicos
+        if (path.startsWith("/auth/login") || path.startsWith("/auth/logout") || path.startsWith("/auth/forgot-password")) {
             return true;
         }
         

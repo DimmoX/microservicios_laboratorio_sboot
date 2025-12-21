@@ -116,22 +116,64 @@ export class AuthService {
   }
 
   /**
-   * Cambiar contraseña del usuario actual
-   * Endpoint: PUT /users/{id}/password
+   * Recuperar contraseña
+   * Endpoint: POST /auth/forgot-password
+   * Devuelve la contraseña temporal generada
    */
-  changePassword(userId: number, oldPassword: string, newPassword: string): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/users/${userId}/password`, {
+  forgotPassword(email: string): Observable<string> {
+    return this.http.post<any>(`${this.apiUrl}/auth/forgot-password`, { email })
+      .pipe(
+        map(response => {
+          console.log('📡 Respuesta completa del backend:', response);
+          console.log('📡 response.data:', response.data);
+          console.log('📡 response.data?.temporaryPassword:', response.data?.temporaryPassword);
+          const password = response.data?.temporaryPassword || '';
+          console.log('📡 Password extraída:', password);
+          return password;
+        })
+      );
+  }
+
+  /**
+   * Cambiar contraseña (para contraseñas temporales)
+   * Endpoint: POST /auth/change-password
+   */
+  changePassword(oldPassword: string, newPassword: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/auth/change-password`, {
       oldPassword,
       newPassword
     });
   }
 
   /**
-   * Recuperar contraseña
-   * Endpoint: POST /auth/forgot-password
+   * Decodifica un JWT (sin verificar la firma, solo para leer claims)
    */
-  forgotPassword(email: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/auth/forgot-password`, { email });
+  private decodeToken(token: string): any {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      console.error('Error decodificando token:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Verifica si el token actual requiere cambio de contraseña
+   */
+  requiresPasswordChange(): boolean {
+    const token = this.getToken();
+    if (!token) return false;
+    
+    const decoded = this.decodeToken(token);
+    return decoded?.requiresPasswordChange === true;
   }
 
   /**

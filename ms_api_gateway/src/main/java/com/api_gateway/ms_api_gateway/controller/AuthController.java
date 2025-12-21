@@ -19,6 +19,7 @@ import java.util.Map;
  * 
  * Responsabilidades:
  * - POST /auth/login: Delega autenticación a ms_gestion_users
+ * - POST /auth/forgot-password: Delega recuperación de contraseña a ms_gestion_users
  * - POST /auth/logout: Invalida token agregándolo a blacklist
  */
 @RestController
@@ -64,6 +65,34 @@ public class AuthController {
                 errorResponse.put("description", "Credenciales inválidas");
                 errorResponse.put("data", new LinkedHashMap<>());
                 return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse));
+            });
+    }
+
+    /**
+     * Endpoint de recuperación de contraseña - delega a ms_gestion_users.
+     * 
+     * POST /auth/forgot-password
+     * Body: { "email": "usuario@ejemplo.com" }
+     * Respuesta: { "code": "000", "description": "...", "data": { "email": "...", "message": "...", "temporaryToken": "..." } }
+     */
+    @PostMapping("/forgot-password")
+    public Mono<ResponseEntity<Map<String, Object>>> forgotPassword(@RequestBody Map<String, String> request) {
+        logger.info("POST /auth/forgot-password - {}", request.get("email"));
+        
+        return webClientBuilder.build()
+            .post()
+            .uri(usersServiceUrl + "/auth/forgot-password")
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {})
+            .map(ResponseEntity::ok)
+            .onErrorResume(e -> {
+                logger.warn("Forgot password fallido para {}: {}", request.get("email"), e.getMessage());
+                Map<String, Object> errorResponse = new LinkedHashMap<>();
+                errorResponse.put("code", "000");
+                errorResponse.put("description", "Si el email existe, recibirás instrucciones para recuperar tu contraseña");
+                errorResponse.put("data", new LinkedHashMap<>());
+                return Mono.just(ResponseEntity.ok(errorResponse));
             });
     }
 

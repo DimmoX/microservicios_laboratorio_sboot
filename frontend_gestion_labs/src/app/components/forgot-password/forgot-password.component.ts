@@ -25,13 +25,20 @@ import { AuthService } from '../../services/auth.service';
           </div>
           <div class="alert alert-error" *ngIf="errorMessage">⚠️ {{ errorMessage }}</div>
           <div class="alert alert-success" *ngIf="successMessage">
-            ✅ {{ successMessage }}<br>
-            <strong *ngIf="tempPassword">Tu contraseña temporal es: {{ tempPassword }}</strong>
+            ✅ {{ successMessage }}
           </div>
-          <button type="submit" class="btn btn-primary btn-block" [disabled]="loading">
+          <div class="password-box" *ngIf="tempPassword">
+            <div class="password-label">Tu contraseña temporal es:</div>
+            <div class="password-value">{{ tempPassword }}</div>
+            <div class="password-hint">⚠️ Copia esta contraseña para iniciar sesión</div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" [disabled]="loading" *ngIf="!tempPassword">
             {{ loading ? '⏳ Procesando...' : 'Recuperar Contraseña' }}
           </button>
-          <div class="form-footer">
+          <a routerLink="/login" class="btn btn-primary btn-block btn-back-login" *ngIf="tempPassword">
+            Volver al login
+          </a>
+          <div class="form-footer" *ngIf="!tempPassword">
             <a routerLink="/login" class="link">Volver al login</a>
           </div>
         </form>
@@ -55,11 +62,44 @@ import { AuthService } from '../../services/auth.service';
     .alert { padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
     .alert-error { background-color: #fee2e2; color: #991b1b; }
     .alert-success { background-color: #d1fae5; color: #065f46; }
+    .password-box {
+      background: linear-gradient(135deg, #3D7699 0%, #144766 100%);
+      padding: 1.5rem;
+      border-radius: 10px;
+      margin: 1.5rem 0;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    .password-label {
+      color: white;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      opacity: 0.9;
+    }
+    .password-value {
+      background: white;
+      color: #3D7699;
+      font-size: 1.8rem;
+      font-weight: bold;
+      padding: 1rem;
+      border-radius: 8px;
+      letter-spacing: 0.2rem;
+      font-family: 'Courier New', monospace;
+      margin: 0.5rem 0;
+      word-break: break-all;
+    }
+    .password-hint {
+      color: white;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      font-weight: 500;
+    }
     .btn { width: 100%; padding: 0.875rem; border: none; border-radius: 8px; font-size: 1rem;
       font-weight: 600; cursor: pointer; background: linear-gradient(135deg, #0369a1 0%, #06b6d4 100%);
       color: white; transition: all 0.3s; }
     .btn:hover:not(:disabled) { transform: translateY(-2px); }
     .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-back-login { display: block; text-align: center; text-decoration: none; }
     .form-footer { text-align: center; margin-top: 1rem; }
     .link { color: #0369a1; text-decoration: none; }
     .link:hover { text-decoration: underline; }
@@ -84,9 +124,13 @@ export class ForgotPasswordComponent {
     this.successMessage = '';
     this.authService.forgotPassword(this.email).subscribe({
       next: (tempPwd) => {
+        console.log('🔑 Password recibida del servicio:', tempPwd);
+        console.log('🔑 Tipo de dato:', typeof tempPwd);
+        console.log('🔑 Longitud:', tempPwd?.length);
         this.loading = false;
         this.tempPassword = tempPwd;
-        this.successMessage = 'Se ha generado una contraseña temporal. Úsala para iniciar sesión.';
+        console.log('🔑 Password asignada a this.tempPassword:', this.tempPassword);
+        this.successMessage = 'Se ha enviado una contraseña temporal a tu correo electrónico. También puedes verla a continuación:';
       },
       error: (error: any) => {
         this.loading = false;
