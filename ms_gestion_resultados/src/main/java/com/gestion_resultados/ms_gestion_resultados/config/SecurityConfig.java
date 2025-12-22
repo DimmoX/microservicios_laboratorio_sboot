@@ -2,6 +2,7 @@ package com.gestion_resultados.ms_gestion_resultados.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -30,6 +31,14 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                // Permitir endpoint de error de Spring Boot
+                .requestMatchers("/error").permitAll()
+                // GET requests permitidos (pero el filtro JWT aún se ejecuta para extraer rol)
+                .requestMatchers(HttpMethod.GET, "/resultados/**").permitAll()
+                // POST, PUT, DELETE requieren autenticación
+                .requestMatchers(HttpMethod.POST, "/resultados/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/resultados/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/resultados/**").authenticated()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

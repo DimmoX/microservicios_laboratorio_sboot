@@ -1,13 +1,11 @@
 package com.gestion_users.ms_gestion_users.config;
 
-import com.gestion_users.ms_gestion_users.service.TokenBlacklistService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+
+import javax.crypto.SecretKey;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
@@ -17,10 +15,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.crypto.SecretKey;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
+import com.gestion_users.ms_gestion_users.service.TokenBlacklistService;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -37,6 +40,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
+        
+        // Permitir llamadas inter-servicio identificadas con X-Internal-Service header
+        String internalServiceHeader = request.getHeader("X-Internal-Service");
+        if (internalServiceHeader != null && !internalServiceHeader.isEmpty()) {
+            // Autenticar como servicio interno con rol ADMIN
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                "internal-service", 
+                null, 
+                Collections.singletonList(new SimpleGrantedAuthority("ADMIN"))
+            );
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            logger.debug("Llamada inter-servicio autenticada desde: {}", internalServiceHeader);
+            filterChain.doFilter(request, response);
+            return;
+        }
         
         String authHeader = request.getHeader("Authorization");
         
@@ -65,7 +83,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                     username, 
                     null, 
-                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
+                    Collections.singletonList(new SimpleGrantedAuthority(role))
                 );
                 
                 SecurityContextHolder.getContext().setAuthentication(auth);

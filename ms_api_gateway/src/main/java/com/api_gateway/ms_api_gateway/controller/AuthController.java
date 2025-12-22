@@ -97,6 +97,48 @@ public class AuthController {
     }
 
     /**
+     * Endpoint de cambio de contraseña - delega a ms_gestion_users.
+     * 
+     * POST /change-password
+     * Header: Authorization: Bearer {token}
+     * Body: { "oldPassword": "abc123", "newPassword": "miNuevaContraseña" }
+     * Respuesta: { "code": "000", "description": "...", "data": { "username": "...", "message": "...", "success": true } }
+     */
+    @PostMapping("/change-password")
+    public Mono<ResponseEntity<Map<String, Object>>> changePassword(
+            @RequestBody Map<String, String> request,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        
+        logger.info("POST /change-password");
+        
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            logger.warn("POST /change-password - Token no proporcionado");
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            errorResponse.put("code", "001");
+            errorResponse.put("description", "Token de autenticación requerido");
+            errorResponse.put("data", new LinkedHashMap<>());
+            return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse));
+        }
+        
+        return webClientBuilder.build()
+            .post()
+            .uri(usersServiceUrl + "/auth/change-password")
+            .header("Authorization", authHeader)
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {})
+            .map(ResponseEntity::ok)
+            .onErrorResume(e -> {
+                logger.warn("Change password fallido: {}", e.getMessage());
+                Map<String, Object> errorResponse = new LinkedHashMap<>();
+                errorResponse.put("code", "001");
+                errorResponse.put("description", e.getMessage().contains("401") ? "Contraseña actual incorrecta" : "Error al cambiar contraseña");
+                errorResponse.put("data", new LinkedHashMap<>());
+                return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse));
+            });
+    }
+
+    /**
      * Endpoint de logout - invalida el token agregándolo a la blacklist.
      * 
      * POST /auth/logout

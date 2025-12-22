@@ -1,7 +1,7 @@
 package com.gestion_labs.ms_gestion_labs.dto;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 public class AgendaExamenDTO {
     private Long id;
@@ -12,9 +12,9 @@ public class AgendaExamenDTO {
     private Long examenId;
     private String examenNombre;
     private Long empleadoId;
-    private OffsetDateTime fechaHora;
+    private LocalDateTime fechaHora;
     private String estado;
-    private OffsetDateTime creadoEn;
+    private LocalDateTime creadoEn;
     private BigDecimal precio;
 
     // Constructor vacío
@@ -45,14 +45,14 @@ public class AgendaExamenDTO {
     public Long getEmpleadoId() { return empleadoId; }
     public void setEmpleadoId(Long empleadoId) { this.empleadoId = empleadoId; }
 
-    public OffsetDateTime getFechaHora() { return fechaHora; }
-    public void setFechaHora(OffsetDateTime fechaHora) { this.fechaHora = fechaHora; }
+    public LocalDateTime getFechaHora() { return fechaHora; }
+    public void setFechaHora(LocalDateTime fechaHora) { this.fechaHora = fechaHora; }
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
 
-    public OffsetDateTime getCreadoEn() { return creadoEn; }
-    public void setCreadoEn(OffsetDateTime creadoEn) { this.creadoEn = creadoEn; }
+    public LocalDateTime getCreadoEn() { return creadoEn; }
+    public void setCreadoEn(LocalDateTime creadoEn) { this.creadoEn = creadoEn; }
 
     public Integer getPrecio() { 
         return precio != null ? precio.intValue() : null; 

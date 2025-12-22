@@ -1,9 +1,14 @@
 package com.gestion_users.ms_gestion_users.service.user;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
+import javax.crypto.SecretKey;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.gestion_users.ms_gestion_users.config.JwtProperties;
 import com.gestion_users.ms_gestion_users.dto.UsuarioResponse;
 import com.gestion_users.ms_gestion_users.dto.UsuarioUpdateRequest;
 import com.gestion_users.ms_gestion_users.model.EmpleadoModel;
@@ -14,6 +19,10 @@ import com.gestion_users.ms_gestion_users.repository.DireccionRepository;
 import com.gestion_users.ms_gestion_users.repository.EmpleadoRepository;
 import com.gestion_users.ms_gestion_users.repository.PacienteRepository;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+
 @Service
 public class UsuarioProfileService {
 
@@ -21,6 +30,9 @@ public class UsuarioProfileService {
     private final EmpleadoRepository empleadoRepo;
     private final ContactoRepository contactoRepo;
     private final DireccionRepository direccionRepo;
+    
+    @Autowired
+    private JwtProperties jwtProperties;
 
     public UsuarioProfileService(
         PacienteRepository pacienteRepo,
@@ -32,6 +44,26 @@ public class UsuarioProfileService {
         this.empleadoRepo = empleadoRepo;
         this.contactoRepo = contactoRepo;
         this.direccionRepo = direccionRepo;
+    }
+
+    /**
+     * Extrae el userId del token JWT
+     */
+    public Long extractUserIdFromToken(String token) {
+        try {
+            SecretKey key = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
+            
+            Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+            
+            Integer userIdInt = claims.get("userId", Integer.class);
+            return userIdInt != null ? userIdInt.longValue() : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public UsuarioResponse buildProfile(UsuarioModel user) {
@@ -175,7 +207,6 @@ public class UsuarioProfileService {
     private static String normalizeRole(String role) {
         if (role == null) return null;
         String r = role.trim();
-        if (r.startsWith("ROLE_")) r = r.substring("ROLE_".length());
         return r;
     }
 

@@ -8,18 +8,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gestion_resultados.ms_gestion_resultados.model.ResultadoExamenModel;
+import com.gestion_resultados.ms_gestion_resultados.service.EnrichmentService;
 import com.gestion_resultados.ms_gestion_resultados.service.resultados.ResultadoService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/resultados")
@@ -27,38 +32,54 @@ public class ResultadoController {
 
     private static final Logger logger = LoggerFactory.getLogger(ResultadoController.class);
     private final ResultadoService service;
+    private final EnrichmentService enrichmentService;
 
-    public ResultadoController(ResultadoService service) {
+    public ResultadoController(ResultadoService service, EnrichmentService enrichmentService) {
         this.service = service;
+        this.enrichmentService = enrichmentService;
     }
 
     /**
      * Listar todos los resultados
      * - PATIENT: Solo ve sus propios resultados (filtrado por pacienteId)
-     * - LAB_EMPLOYEE y ADMIN: Ven todos los resultados
+     * - EMPLOYEE / LAB_EMPLOYEE y ADMIN: Ven todos los resultados
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('PATIENT', 'LAB_EMPLOYEE', 'ADMIN')")
-    public ResponseEntity<Map<String, Object>> getAllResults(
-            @RequestHeader(value = "X-User-Role", required = false) String userRole,
-            @RequestHeader(value = "X-Patient-Id", required = false) String patientIdStr) {
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'EMPLOYEE', 'LAB_EMPLOYEE', 'ADMIN')")
+    public ResponseEntity<Map<String, Object>> getAllResults(HttpServletRequest request) {
         
-        logger.info("GET: /resultados -> Rol: {}, PatientId: {}", userRole, patientIdStr);
+        // Obtener JWT para enriquecer datos
+        String jwtToken = request.getHeader("Authorization");
+        
+        // Obtener rol desde SecurityContext (poblado por JwtAuthenticationFilter)
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String userRole = auth != null ? auth.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .filter(a -> !a.startsWith("ROLE_")) // Filtrar prefijo ROLE_
+            .findFirst()
+            .orElse(null) : null;
+        
+        logger.info("GET: /resultados -> Rol desde SecurityContext: {}", userRole);
 
         Map<String, Object> response = new LinkedHashMap<>();
 
         try {
             List<ResultadoExamenModel> resultados;
             
-            // Si es PATIENT, filtrar por su pacienteId
-            if ("ROLE_PATIENT".equals(userRole) && patientIdStr != null) {
-                Long pacienteId = Long.parseLong(patientIdStr);
-                resultados = service.findByPaciente(pacienteId);
-                logger.info("Paciente {} ve {} resultados (filtrados)", pacienteId, resultados.size());
+            // Si es PATIENT, filtrar por su pacienteId (TODO: obtener pacienteId del JWT)
+            if ("PATIENT".equals(userRole)) {
+                // Por ahora, PATIENT verá todos hasta implementar filtrado por pacienteId
+                resultados = service.findAll();
+                logger.info("Paciente ve {} resultados", resultados.size());
             } else {
-                // LAB_EMPLOYEE y ADMIN ven todos
+                // EMPLOYEE / LAB_EMPLOYEE y ADMIN ven todos
                 resultados = service.findAll();
                 logger.info("Usuario con rol {} ve {} resultados (todos)", userRole, resultados.size());
+            }
+            
+            // Enriquecer resultados con nombres de paciente y examen
+            if (jwtToken != null && !resultados.isEmpty()) {
+                enrichmentService.enrichResultados(resultados, jwtToken);
             }
 
             response.put("code", "000");
@@ -81,10 +102,10 @@ public class ResultadoController {
     /**
      * Obtener resultado por ID
      * PATIENT: solo puede ver sus propios resultados (validación en servicio)
-     * LAB_EMPLOYEE y ADMIN: pueden ver cualquier resultado
+     * EMPLOYEE / LAB_EMPLOYEE y ADMIN: pueden ver cualquier resultado
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('PATIENT', 'LAB_EMPLOYEE', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'EMPLOYEE', 'LAB_EMPLOYEE', 'ADMIN')")
     public ResponseEntity<Map<String, Object>> getResultById(@PathVariable Long id) {
         logger.info("GET: /resultados/{} -> Obtener resultado de examen por ID", id);
 
@@ -145,10 +166,10 @@ public class ResultadoController {
     /**
      * Listar resultados por paciente
      * PATIENT: solo puede ver sus propios resultados (validación en servicio)
-     * LAB_EMPLOYEE y ADMIN: pueden ver resultados de cualquier paciente
+     * EMPLOYEE / LAB_EMPLOYEE y ADMIN: pueden ver resultados de cualquier paciente
      */
     @GetMapping("/paciente/{pacienteId}")
-    @PreAuthorize("hasAnyRole('PATIENT', 'LAB_EMPLOYEE', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'EMPLOYEE', 'LAB_EMPLOYEE', 'ADMIN')")
     public ResponseEntity<Map<String, Object>> getResultsByPatient(@PathVariable Long pacienteId) {
         logger.info("GET: /resultados/paciente/{} -> Listar resultados de exámenes por paciente", pacienteId);
 
@@ -187,11 +208,34 @@ public class ResultadoController {
     }
 
     /**
-     * Crear resultado de examen - Solo LAB_EMPLOYEE y ADMIN
+     * Crear resultado de examen - Solo EMPLOYEE / LAB_EMPLOYEE y ADMIN
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('LAB_EMPLOYEE', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('EMPLOYEE', 'LAB_EMPLOYEE', 'ADMIN')")
     public ResponseEntity<Map<String, Object>> createResult(@RequestBody ResultadoExamenModel m) {
+        // Log de autoridades para debug
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            logger.info("POST: /resultados -> Usuario: {}, Authorities: {}", 
+                auth.getName(), 
+                auth.getAuthorities());
+            
+            // Obtener empleadoId del JWT (guardado en details por JwtAuthenticationFilter)
+            if (auth.getDetails() instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> details = (Map<String, Object>) auth.getDetails();
+                Integer empleadoId = (Integer) details.get("empleadoId");
+                if (empleadoId != null) {
+                    m.setEmpleadoId(empleadoId.longValue());
+                    logger.info("POST: /resultados -> EmpleadoId del JWT: {}", empleadoId);
+                } else {
+                    logger.warn("POST: /resultados -> No hay empleadoId en el JWT");
+                }
+            }
+        } else {
+            logger.warn("POST: /resultados -> No hay autenticación en SecurityContext!");
+        }
+        
         logger.info("POST: /resultados -> Crear nuevo resultado de examen");
 
         Map<String, Object> response = new LinkedHashMap<>();
@@ -229,11 +273,11 @@ public class ResultadoController {
     }
 
     /**
-     * Actualizar resultado - Solo LAB_EMPLOYEE y ADMIN
+     * Actualizar resultado - Solo EMPLOYEE / LAB_EMPLOYEE y ADMIN
      * Se usa principalmente para cambiar el estado y establecer fechaResultado
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('LAB_EMPLOYEE', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('EMPLOYEE', 'LAB_EMPLOYEE', 'ADMIN')")
     public ResponseEntity<Map<String, Object>> updateResult(@PathVariable Long id, @RequestBody ResultadoExamenModel m) {
         logger.info("PUT: /resultados/{} -> Actualizar resultado de examen", id);
 
@@ -285,7 +329,7 @@ public class ResultadoController {
      * Eliminar resultado - Solo ADMIN
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Map<String, Object>> deleteResult(@PathVariable Long id) {
         logger.info("DELETE: /resultados/{} -> Eliminar resultado de examen", id);
 

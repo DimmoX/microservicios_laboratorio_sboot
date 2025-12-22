@@ -1,7 +1,13 @@
 package com.gestion_users.ms_gestion_users.model;
 
-import jakarta.persistence.*;
 import java.time.OffsetDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "users")
@@ -18,6 +24,9 @@ public class UsuarioModel {
 
     private String role; // ADMIN | LAB_EMPLOYEE | PATIENT
     private String estado = "ACTIVO";
+    
+    @Column(name = "password_temporal", length = 1)
+    private String passwordTemporal = "N"; // S = temporal, N = definitiva
 
     @Column(name = "paciente_id")
     private Long pacienteId;
@@ -43,6 +52,11 @@ public class UsuarioModel {
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+
+    public String getPasswordTemporal() { return passwordTemporal; }
+    public void setPasswordTemporal(String passwordTemporal) { this.passwordTemporal = passwordTemporal; }
+    
+    public boolean isPasswordTemporal() { return "S".equals(passwordTemporal); }
 
     public Long getPacienteId() { return pacienteId; }
     public void setPacienteId(Long pacienteId) { this.pacienteId = pacienteId; }

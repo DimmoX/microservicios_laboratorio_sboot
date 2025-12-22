@@ -44,6 +44,16 @@ export class LabExamService {
   }
 
   /**
+   * Obtener precio de una combinación lab-examen específica
+   * Endpoint: GET /lab-exams/lab/{labId}/exam/{examId}
+   */
+  getPrecio(labId: number, examId: number): Observable<LabExam | null> {
+    return this.http.get<any>(`${this.apiUrl}/lab/${labId}/exam/${examId}`).pipe(
+      map(response => response.data || null)
+    );
+  }
+
+  /**
    * Crear nueva relación lab-exam
    * Endpoint: POST /lab-exams (requiere ADMIN)
    */
@@ -55,19 +65,19 @@ export class LabExamService {
 
   /**
    * Actualizar relación lab-exam
-   * Endpoint: PUT /lab-exams/{id} (requiere ADMIN)
+   * Endpoint: PUT /lab-exams/lab/{labId}/exam/{examId} (requiere ADMIN)
    */
-  actualizarLabExam(id: number, labExam: LabExam): Observable<LabExam> {
-    return this.http.put<any>(`${this.apiUrl}/${id}`, labExam).pipe(
+  actualizarLabExam(labId: number, examId: number, labExam: LabExam): Observable<LabExam> {
+    return this.http.put<any>(`${this.apiUrl}/lab/${labId}/exam/${examId}`, labExam).pipe(
       map(response => response.data)
     );
   }
 
   /**
    * Eliminar relación
-   * Endpoint: DELETE /lab-exams/{id} (requiere ADMIN)
+   * Endpoint: DELETE /lab-exams/lab/{labId}/exam/{examId} (requiere ADMIN)
    */
-  eliminarLabExam(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/${id}`);
+  eliminarLabExam(labId: number, examId: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/lab/${labId}/exam/${examId}`);
   }
 }

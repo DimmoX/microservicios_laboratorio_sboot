@@ -1,5 +1,7 @@
 package com.gestion_labs.ms_gestion_labs.controller;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -178,14 +180,42 @@ public class LabExamController {
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, Object>> upsertLabExamRelation(@RequestBody LabExamModel m) {
+    public ResponseEntity<Map<String, Object>> upsertLabExamRelation(@RequestBody Map<String, Object> payload) {
         logger.info("POST: /lab-exam -> Crear/actualizar relación laboratorio-examen");
         
         Map<String, Object> response = new LinkedHashMap<>();
         
         try {
-            if (m.getId() == null) {
+            LabExamModel m = new LabExamModel();
+            
+            // Soportar dos formatos: con id anidado o con idLaboratorio/idExamen directos
+            if (payload.containsKey("id") && payload.get("id") instanceof Map) {
+                Map<String, Object> idMap = (Map<String, Object>) payload.get("id");
+                Long labId = getLongFromMap(idMap, "idLaboratorio");
+                Long examId = getLongFromMap(idMap, "idExamen");
+                m.setId(new LabExamKey(labId, examId));
+            } else if (payload.containsKey("idLaboratorio") && payload.containsKey("idExamen")) {
+                Long labId = getLongFromMap(payload, "idLaboratorio");
+                Long examId = getLongFromMap(payload, "idExamen");
+                m.setId(new LabExamKey(labId, examId));
+            } else {
                 throw new RuntimeException("Debe enviar id (idLaboratorio, idExamen)");
+            }
+            
+            // Mapear precio
+            if (payload.containsKey("precio")) {
+                Object precioObj = payload.get("precio");
+                if (precioObj instanceof Number) {
+                    m.setPrecio(new BigDecimal(precioObj.toString()));
+                }
+            }
+            
+            // Mapear fechas vigentes
+            if (payload.containsKey("vigenteDesde") && payload.get("vigenteDesde") != null) {
+                m.setVigenteDesde(LocalDate.parse(payload.get("vigenteDesde").toString()));
+            }
+            if (payload.containsKey("vigenteHasta") && payload.get("vigenteHasta") != null) {
+                m.setVigenteHasta(LocalDate.parse(payload.get("vigenteHasta").toString()));
             }
             
             LabExamModel saved = service.upsert(m);
@@ -261,5 +291,20 @@ public class LabExamController {
             
             return ResponseEntity.status(500).body(response);
         }
+    }
+    
+    // Método helper para convertir diferentes tipos numéricos a Long
+    private Long getLongFromMap(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        if (value instanceof String) {
+            return Long.parseLong((String) value);
+        }
+        throw new IllegalArgumentException("No se puede convertir " + value.getClass() + " a Long");
     }
 }

@@ -1,8 +1,11 @@
 package com.gestion_labs.ms_gestion_labs.service.agenda;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -10,7 +13,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.gestion_labs.ms_gestion_labs.client.UsersServiceClient;
 import com.gestion_labs.ms_gestion_labs.dto.AgendaExamenDTO;
+import com.gestion_labs.ms_gestion_labs.dto.PacienteDTO;
 import com.gestion_labs.ms_gestion_labs.model.AgendaExamenModel;
 import com.gestion_labs.ms_gestion_labs.repository.AgendaExamenRepository;
 import com.gestion_labs.ms_gestion_labs.repository.ExamenRepository;
@@ -20,6 +25,8 @@ import com.gestion_labs.ms_gestion_labs.repository.LaboratorioRepository;
 @Service
 public class AgendaServiceImpl implements AgendaService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AgendaServiceImpl.class);
+    
     private final AgendaExamenRepository repo;
     
     @Autowired
@@ -30,6 +37,9 @@ public class AgendaServiceImpl implements AgendaService {
     
     @Autowired
     private LabExamRepository labExamRepository;
+    
+    @Autowired
+    private UsersServiceClient usersServiceClient;
     
     public AgendaServiceImpl(AgendaExamenRepository repo) { this.repo = repo; }
 
@@ -62,7 +72,7 @@ public class AgendaServiceImpl implements AgendaService {
                     );
                 }
             }
-            // Si es LAB_EMPLOYEE o ADMIN, permite acceso a cualquier paciente
+            // Si es EMPLOYEE o ADMIN, permite acceso a cualquier paciente
         }
         
         return repo.findByPacienteId(pacienteId).stream()
@@ -88,21 +98,17 @@ public class AgendaServiceImpl implements AgendaService {
                 .findFirst()
                 .orElse("");
             
+            // Solo aplicar restricción si el usuario es PATIENT
             if ("PATIENT".equals(rol)) {
-                String userId = auth.getName();
-                
-                // Verificar que el pacienteId en el body coincida con el userId
-                if (dto.getPacienteId() != null && !userId.equals(dto.getPacienteId().toString())) {
-                    throw new AccessDeniedException(
-                        "No puedes crear agendas para otros pacientes"
-                    );
-                }
-                
-                // Si no viene pacienteId, asignarlo automáticamente
                 if (dto.getPacienteId() == null) {
-                    dto.setPacienteId(Long.parseLong(userId));
+                    throw new RuntimeException("El ID del paciente es requerido");
                 }
             }
+        }
+
+        // Validar que el pacienteId esté presente
+        if (dto.getPacienteId() == null) {
+            throw new RuntimeException("El ID del paciente es requerido");
         }
 
         // Validar que existan el examen y laboratorio
@@ -144,6 +150,29 @@ public class AgendaServiceImpl implements AgendaService {
     }
     
     @Override
+    public AgendaExamenDTO updateFechaHora(Long id, LocalDateTime nuevaFechaHora) {
+        AgendaExamenModel agenda = repo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Agenda no encontrada: " + id));
+            
+        if ("ATENDIDA".equals(agenda.getEstado())) {
+            throw new RuntimeException("No se puede actualizar una agenda ya atendida");
+        }
+        
+        if ("CANCELADA".equals(agenda.getEstado())) {
+            throw new RuntimeException("No se puede actualizar una agenda cancelada");
+        }
+        
+        if (nuevaFechaHora == null) {
+            throw new RuntimeException("La nueva fecha/hora es requerida");
+        }
+        
+        agenda.setFechaHora(nuevaFechaHora);
+        AgendaExamenModel saved = repo.save(agenda);
+        logger.info("Fecha/hora actualizada para agenda ID: {} a {}", id, nuevaFechaHora);
+        return convertToDTO(saved);
+    }
+
+    @Override
     public AgendaExamenDTO cancelar(Long id) {
         AgendaExamenModel agenda = repo.findById(id)
             .orElseThrow(() -> new RuntimeException("Agenda no encontrada: " + id));
@@ -158,10 +187,15 @@ public class AgendaServiceImpl implements AgendaService {
         
         agenda.setEstado("CANCELADA");
         AgendaExamenModel saved = repo.save(agenda);
+        logger.info("Agenda cancelada (soft delete) ID: {}", id);
         return convertToDTO(saved);
     }
 
-    @Override public void delete(Long id) { repo.deleteById(id); }
+    @Override 
+    public void delete(Long id) { 
+        logger.info("DELETE: /agendas/{} -> Eliminar físicamente agenda", id);
+        repo.deleteById(id); 
+    }
     
     private AgendaExamenDTO convertToDTO(AgendaExamenModel model) {
         AgendaExamenDTO dto = new AgendaExamenDTO();
@@ -173,6 +207,16 @@ public class AgendaServiceImpl implements AgendaService {
         dto.setFechaHora(model.getFechaHora());
         dto.setEstado(model.getEstado());
         dto.setCreadoEn(model.getCreadoEn());
+        
+        // Obtener nombre del paciente desde users-service
+        try {
+            PacienteDTO paciente = usersServiceClient.getPacienteById(model.getPacienteId());
+            if (paciente != null) {
+                dto.setPacienteNombre(paciente.getNombreCompleto());
+            }
+        } catch (Exception e) {
+            logger.warn("No se pudo obtener nombre del paciente ID {}: {}", model.getPacienteId(), e.getMessage());
+        }
         
         // Enriquecer con nombres
         examenRepository.findById(model.getExamenId()).ifPresent(examen -> {

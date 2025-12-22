@@ -52,7 +52,7 @@ export class CitaService {
   }
 
   /**
-   * Cancelar una cita
+   * Cancelar una cita (soft delete - cambia estado a CANCELADA)
    */
   cancelarCita(id: number): Observable<CitaAgendada> {
     return this.http.put<ApiResponse<CitaAgendada>>(`${this.apiUrl}/${id}/cancelar`, {})
@@ -60,9 +60,25 @@ export class CitaService {
   }
 
   /**
-   * Eliminar una cita
+   * Eliminar físicamente una cita (hard delete - borra de BD)
    */
   eliminarCita(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  /**
+   * Actualizar fecha/hora de una cita
+   */
+  actualizarFechaHora(id: number, fechaHora: string): Observable<CitaAgendada> {
+    return this.http.put<ApiResponse<CitaAgendada>>(`${this.apiUrl}/${id}`, { fechaHora })
+      .pipe(map(response => response.data));
+  }
+
+  /**
+   * Actualizar estado de una cita (PROGRAMADA, ATENDIDA, CANCELADA)
+   */
+  actualizarEstado(id: number, estado: 'PROGRAMADA' | 'ATENDIDA' | 'CANCELADA'): Observable<CitaAgendada> {
+    return this.http.put<ApiResponse<CitaAgendada>>(`${this.apiUrl}/${id}`, { estado })
+      .pipe(map(response => response.data));
   }
 }

@@ -76,7 +76,7 @@ public class AuthServiceImpl implements AuthService {
             jwtBuilder.claim("pacienteId", user.getPacienteId());
         }
 
-        // Agregar empleadoId si el usuario es LAB_EMPLOYEE
+        // Agregar empleadoId si el usuario es EMPLOYEE
         if (user.getEmpleadoId() != null) {
             jwtBuilder.claim("empleadoId", user.getEmpleadoId());
         }

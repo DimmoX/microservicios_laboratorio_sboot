@@ -1,16 +1,21 @@
 package com.gestion_users.ms_gestion_users.controller;
 
-import com.gestion_users.ms_gestion_users.dto.*;
-import com.gestion_users.ms_gestion_users.service.registro.RegistroService;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import com.gestion_users.ms_gestion_users.dto.RegistroEmpleadoRequest;
+import com.gestion_users.ms_gestion_users.dto.RegistroPacienteRequest;
+import com.gestion_users.ms_gestion_users.dto.RegistroResponse;
+import com.gestion_users.ms_gestion_users.service.registro.RegistroService;
 
 /**
  * Controlador para el registro completo de pacientes y empleados.
@@ -36,6 +41,9 @@ public class RegistroController {
     /**
      * Registra un nuevo paciente con todos sus datos.
      * 
+     * RUTA PÚBLICA - No requiere autenticación
+     * Los usuarios pueden registrarse a sí mismos como pacientes
+     * 
      * POST /registro/paciente
      * Body: {
      *   "pnombre": "Juan",
@@ -56,7 +64,6 @@ public class RegistroController {
      * }
      */
     @PostMapping("/paciente")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> registrarPaciente(@RequestBody RegistroPacienteRequest request) {
         logger.info("POST: /registro/paciente -> Registrar nuevo paciente: {}", request.getContacto().getEmail());
         
@@ -109,7 +116,7 @@ public class RegistroController {
      * }
      */
     @PostMapping("/empleado")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Map<String, Object>> registrarEmpleado(@RequestBody RegistroEmpleadoRequest request) {
         logger.info("POST: /registro/empleado -> Registrar nuevo empleado: {}", request.getContacto().getEmail());
         

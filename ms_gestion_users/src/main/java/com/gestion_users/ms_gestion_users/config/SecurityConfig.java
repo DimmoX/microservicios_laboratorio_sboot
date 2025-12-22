@@ -19,8 +19,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 /**
  * Configuración de seguridad para ms_gestion_users.
  * 
- * JwtAuthenticationFilter (ya existente) extrae el rol del JWT y 
- * establece la autenticación con ROLE_ prefix para @PreAuthorize.
+ * JwtAuthenticationFilter (ya existente) extrae el rol del JWT y lo asigna al contexto de seguridad.
  */
 @Configuration
 @EnableWebSecurity
@@ -40,9 +39,11 @@ public class SecurityConfig {
            // JwtAuthenticationFilter ya extrae rol del JWT
            .addFilterBefore(jwtAuthenticationFilter, BasicAuthenticationFilter.class)
            .authorizeHttpRequests(authz -> authz
-               // Endpoints de autenticación accesibles sin rol
-               .requestMatchers("/auth/**", "/actuator/**").permitAll()
-               // Otros endpoints requieren autenticación (rol del Gateway)
+               // Endpoints públicos (sin autenticación)
+               .requestMatchers("/auth/**", "/actuator/**", "/registro/paciente").permitAll()
+               // Registro de empleado requiere ADMIN 
+               .requestMatchers("/registro/empleado").hasAuthority("ADMIN")
+               // Otros endpoints requieren autenticación (JWT o X-Internal-Service header)
                .anyRequest().authenticated()
            );
        return http.build();

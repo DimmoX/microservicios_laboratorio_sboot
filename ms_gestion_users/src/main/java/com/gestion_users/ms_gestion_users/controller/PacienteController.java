@@ -1,17 +1,24 @@
 package com.gestion_users.ms_gestion_users.controller;
 
-import com.gestion_users.ms_gestion_users.model.PacienteModel;
-import com.gestion_users.ms_gestion_users.service.paciente.PacienteService;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import com.gestion_users.ms_gestion_users.model.PacienteModel;
+import com.gestion_users.ms_gestion_users.service.paciente.PacienteService;
 
 @RestController
 @RequestMapping("/pacientes")
@@ -25,7 +32,7 @@ public class PacienteController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'LAB_EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<Map<String, Object>> getAllPatients() {
         logger.info("GET: /pacientes -> Listar todos los pacientes");
         
@@ -53,7 +60,7 @@ public class PacienteController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'LAB_EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<Map<String, Object>> getPatientById(@PathVariable Long id) {
         logger.info("GET: /pacientes/{} -> Obtener paciente por ID", id);
         
@@ -81,7 +88,7 @@ public class PacienteController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Map<String, Object>> createPatient(@RequestBody PacienteModel paciente) {
         logger.info("POST: /pacientes -> Crear nuevo paciente");
         
@@ -109,7 +116,7 @@ public class PacienteController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Map<String, Object>> updatePatient(@PathVariable Long id, @RequestBody PacienteModel paciente) {
         logger.info("PUT: /pacientes/{} -> Actualizar paciente", id);
         
@@ -137,7 +144,7 @@ public class PacienteController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Map<String, Object>> deletePatient(@PathVariable Long id) {
         logger.info("DELETE: /pacientes/{} -> Eliminar paciente", id);
         

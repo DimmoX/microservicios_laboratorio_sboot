@@ -1,13 +1,24 @@
 package com.gestion_users.ms_gestion_users.service.registro;
 
-import com.gestion_users.ms_gestion_users.dto.*;
-import com.gestion_users.ms_gestion_users.model.*;
-import com.gestion_users.ms_gestion_users.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.gestion_users.ms_gestion_users.dto.RegistroEmpleadoRequest;
+import com.gestion_users.ms_gestion_users.dto.RegistroPacienteRequest;
+import com.gestion_users.ms_gestion_users.dto.RegistroResponse;
+import com.gestion_users.ms_gestion_users.model.ContactoModel;
+import com.gestion_users.ms_gestion_users.model.DireccionModel;
+import com.gestion_users.ms_gestion_users.model.EmpleadoModel;
+import com.gestion_users.ms_gestion_users.model.PacienteModel;
+import com.gestion_users.ms_gestion_users.model.UsuarioModel;
+import com.gestion_users.ms_gestion_users.repository.ContactoRepository;
+import com.gestion_users.ms_gestion_users.repository.DireccionRepository;
+import com.gestion_users.ms_gestion_users.repository.EmpleadoRepository;
+import com.gestion_users.ms_gestion_users.repository.PacienteRepository;
+import com.gestion_users.ms_gestion_users.repository.UsuarioRepository;
 
 /**
  * Servicio para el registro completo de pacientes y empleados.
@@ -68,13 +79,18 @@ public class RegistroServiceImpl implements RegistroService {
             contacto = contactoRepo.save(contacto);
             logger.info("Contacto creado con ID: {}", contacto.getId());
 
-            // 2. Crear dirección
+            // 2. Crear dirección (con valores por defecto si están vacíos)
             DireccionModel direccion = new DireccionModel(
-                request.getDireccion().getCalle(),
-                request.getDireccion().getNumero(),
-                request.getDireccion().getCiudad(),
-                request.getDireccion().getComuna(),
-                request.getDireccion().getRegion()
+                request.getDireccion().getCalle() != null && !request.getDireccion().getCalle().isEmpty() 
+                    ? request.getDireccion().getCalle() : "No especificada",
+                request.getDireccion().getNumero() != null 
+                    ? request.getDireccion().getNumero() : 0,
+                request.getDireccion().getCiudad() != null && !request.getDireccion().getCiudad().isEmpty() 
+                    ? request.getDireccion().getCiudad() : "No especificada",
+                request.getDireccion().getComuna() != null && !request.getDireccion().getComuna().isEmpty() 
+                    ? request.getDireccion().getComuna() : "No especificada",
+                request.getDireccion().getRegion() != null && !request.getDireccion().getRegion().isEmpty() 
+                    ? request.getDireccion().getRegion() : "No especificada"
             );
             direccion = direccionRepo.save(direccion);
             logger.info("Dirección creada con ID: {}", direccion.getId());
@@ -133,13 +149,18 @@ public class RegistroServiceImpl implements RegistroService {
             contacto = contactoRepo.save(contacto);
             logger.info("Contacto creado con ID: {}", contacto.getId());
 
-            // 2. Crear dirección
+            // 2. Crear dirección (con valores por defecto si están vacíos)
             DireccionModel direccion = new DireccionModel(
-                request.getDireccion().getCalle(),
-                request.getDireccion().getNumero(),
-                request.getDireccion().getCiudad(),
-                request.getDireccion().getComuna(),
-                request.getDireccion().getRegion()
+                request.getDireccion().getCalle() != null && !request.getDireccion().getCalle().isEmpty() 
+                    ? request.getDireccion().getCalle() : "No especificada",
+                request.getDireccion().getNumero() != null 
+                    ? request.getDireccion().getNumero() : 0,
+                request.getDireccion().getCiudad() != null && !request.getDireccion().getCiudad().isEmpty() 
+                    ? request.getDireccion().getCiudad() : "No especificada",
+                request.getDireccion().getComuna() != null && !request.getDireccion().getComuna().isEmpty() 
+                    ? request.getDireccion().getComuna() : "No especificada",
+                request.getDireccion().getRegion() != null && !request.getDireccion().getRegion().isEmpty() 
+                    ? request.getDireccion().getRegion() : "No especificada"
             );
             direccion = direccionRepo.save(direccion);
             logger.info("Dirección creada con ID: {}", direccion.getId());
@@ -161,7 +182,7 @@ public class RegistroServiceImpl implements RegistroService {
             UsuarioModel usuario = new UsuarioModel();
             usuario.setUsername(contacto.getEmail());
             usuario.setPassword(passwordEncoder.encode(request.getPassword()));
-            usuario.setRole("LAB_EMPLOYEE");
+            usuario.setRole("EMPLOYEE");
             usuario.setPacienteId(null);
             usuario.setEmpleadoId(empleado.getId());
             usuario = usuarioRepo.save(usuario);
