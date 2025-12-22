@@ -15,7 +15,12 @@ import { Examen } from '../../models/examen.model';
         <a routerLink="/examenes/nuevo" class="btn btn-primary">+ Nuevo Examen</a>
       </div>
 
-      <div *ngIf="loading" class="loading">Cargando exámenes...</div>
+      <div *ngIf="loading" class="text-center text-white">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2">Cargando exámenes...</p>
+      </div>
       <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
 
       <div *ngIf="!loading && examenes.length > 0" class="grid">

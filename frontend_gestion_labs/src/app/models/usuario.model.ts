@@ -2,10 +2,14 @@
 
 export interface Usuario {
   id: number;
-  nombre: string;
+  nombre?: string; // Nombre completo (calculado)
+  pnombre?: string; // Primer nombre
+  snombre?: string; // Segundo nombre
+  papellido?: string; // Primer apellido
+  sapellido?: string; // Segundo apellido
   username: string;
   password: string;
-  rol: 'ADMIN' | 'LAB_EMPLOYEE' | 'PATIENT' | string;
+  rol: 'ADMIN' | 'EMPLOYEE' | 'LAB_EMPLOYEE' | 'PATIENT' | string;
   telefono?: string;
   direccion?: string;
   fechaRegistro?: Date;

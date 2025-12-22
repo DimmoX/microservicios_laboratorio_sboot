@@ -57,6 +57,13 @@
   box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.1);
 }
 
+.hint {
+  display: block;
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
 .checkbox-group {
   display: flex;
   align-items: center;

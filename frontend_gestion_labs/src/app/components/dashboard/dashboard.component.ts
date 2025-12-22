@@ -51,6 +51,30 @@ import { Usuario } from '../../models/usuario.model';
           </div>
 
           <div class="col-md-4">
+            <div class="card dashboard-card h-100 border-0 shadow-sm" routerLink="/admin/lab-exam" style="cursor: pointer;">
+              <div class="card-body text-center p-4">
+                <div class="icon-wrapper mb-3">
+                  <span style="font-size: 3rem;">💰</span>
+                </div>
+                <h5 class="card-title">Asignación de Precios</h5>
+                <p class="card-text text-muted">Asignar exámenes a laboratorios</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card dashboard-card h-100 border-0 shadow-sm" routerLink="/agendar" style="cursor: pointer;">
+              <div class="card-body text-center p-4">
+                <div class="icon-wrapper mb-3">
+                  <span style="font-size: 3rem;">📅</span>
+                </div>
+                <h5 class="card-title">Gestión de Agendamientos</h5>
+                <p class="card-text text-muted">Ver y gestionar citas agendadas</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
             <div class="card dashboard-card h-100 border-0 shadow-sm" routerLink="/usuarios" style="cursor: pointer;">
               <div class="card-body text-center p-4">
                 <div class="icon-wrapper mb-3">
@@ -78,10 +102,10 @@ import { Usuario } from '../../models/usuario.model';
             <div class="card dashboard-card h-100 border-0 shadow-sm" routerLink="/precios" style="cursor: pointer;">
               <div class="card-body text-center p-4">
                 <div class="icon-wrapper mb-3">
-                  <span style="font-size: 3rem;">💰</span>
+                  <span style="font-size: 3rem;">💵</span>
                 </div>
-                <h5 class="card-title">Precios de Exámenes</h5>
-                <p class="card-text text-muted">Ver precios por laboratorio</p>
+                <h5 class="card-title">Consultar Precios</h5>
+                <p class="card-text text-muted">Ver precios públicos</p>
               </div>
             </div>
           </div>
@@ -102,7 +126,19 @@ import { Usuario } from '../../models/usuario.model';
         <!-- Lab Employee Dashboard -->
         <div *ngIf="isLabEmployee" class="row g-4">
           <div class="col-12">
-            <h3 class="mb-4 text-white">🔬 Panel de Empleado de Laboratorio</h3>
+            <h3 class="mb-4 text-white">🔬 Panel de Empleado</h3>
+          </div>
+
+          <div class="col-md-6">
+            <div class="card dashboard-card h-100 border-0 shadow-sm" routerLink="/agendar" style="cursor: pointer;">
+              <div class="card-body text-center p-4">
+                <div class="icon-wrapper mb-3">
+                  <span style="font-size: 3rem;">📅</span>
+                </div>
+                <h5 class="card-title">Gestión de Agendamientos</h5>
+                <p class="card-text text-muted">Ver y gestionar citas agendadas</p>
+              </div>
+            </div>
           </div>
 
           <div class="col-md-6">
@@ -316,7 +352,7 @@ export class DashboardComponent implements OnInit {
         if (user && user.rol) {
           const rol = user.rol.toUpperCase();
           this.isAdmin = rol === 'ADMIN';
-          this.isLabEmployee = rol === 'LAB_EMPLOYEE';
+          this.isLabEmployee = rol === 'EMPLOYEE' || rol === 'LAB_EMPLOYEE';
           this.isPatient = rol === 'PATIENT';
         }
       },
@@ -328,7 +364,7 @@ export class DashboardComponent implements OnInit {
 
   get userRoleLabel(): string {
     if (this.isAdmin) return 'Administrador';
-    if (this.isLabEmployee) return 'Empleado de Laboratorio';
+    if (this.isLabEmployee) return 'Empleado';
     if (this.isPatient) return 'Paciente';
     return 'Usuario';
   }

@@ -3,38 +3,49 @@
     <h2>{{ isEditMode ? '✏️ Editar Usuario' : '➕ Nuevo Usuario' }}</h2>
 
     <form (ngSubmit)="onSubmit()" #usuarioForm="ngForm">
+      <!-- Campos de nombre y apellidos -->
       <div class="form-row">
         <div class="form-group">
-          <label for="nombre">Nombre Completo *</label>
-          <input type="text" id="nombre" name="nombre" [(ngModel)]="usuario.nombre"
-                 required class="form-control" placeholder="Juan Pérez García" />
+          <label for="nombres">Nombre(s) *</label>
+          <input type="text" id="nombres" name="nombres" [(ngModel)]="nombres"
+                 required class="form-control" placeholder="Juan Carlos" />
+          <small class="hint">Ingrese uno o dos nombres</small>
         </div>
 
+        <div class="form-group">
+          <label for="apellidos">Apellido(s) *</label>
+          <input type="text" id="apellidos" name="apellidos" [(ngModel)]="apellidos"
+                 required class="form-control" placeholder="Pérez García" />
+          <small class="hint">Ingrese uno o dos apellidos</small>
+        </div>
+      </div>
+
+      <div class="form-row">
         <div class="form-group">
           <label for="username">Email/Username *</label>
           <input type="email" id="username" name="username" [(ngModel)]="usuario.username"
                  required class="form-control" placeholder="usuario@example.com" />
         </div>
-      </div>
 
-      <div class="form-row">
         <div class="form-group">
           <label for="rut">RUT</label>
           <input type="text" id="rut" name="rut" [(ngModel)]="usuario.rut"
                  class="form-control" placeholder="12345678-9" />
         </div>
+      </div>
 
+      <div class="form-row">
         <div class="form-group">
           <label for="telefono">Teléfono</label>
           <input type="tel" id="telefono" name="telefono" [(ngModel)]="usuario.telefono"
                  class="form-control" placeholder="+56912345678" />
         </div>
-      </div>
 
-      <div class="form-group">
-        <label for="direccion">Dirección</label>
-        <input type="text" id="direccion" name="direccion" [(ngModel)]="usuario.direccion"
-               class="form-control" placeholder="Av. Providencia 1234, Santiago" />
+        <div class="form-group">
+          <label for="direccion">Dirección</label>
+          <input type="text" id="direccion" name="direccion" [(ngModel)]="usuario.direccion"
+                 class="form-control" placeholder="Av. Providencia 1234, Santiago" />
+        </div>
       </div>
 
       <div class="form-row">

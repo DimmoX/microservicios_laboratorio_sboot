@@ -76,9 +76,11 @@ import { AuthService } from '../../services/auth.service';
       height: 100%;
       background: rgba(0, 0, 0, 0.7);
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
       z-index: 9999;
+      padding-top: 100px;
+      overflow-y: auto;
       animation: fadeIn 0.3s;
     }
 

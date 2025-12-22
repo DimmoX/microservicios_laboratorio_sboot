@@ -4,7 +4,12 @@
     <a routerLink="/usuarios/nuevo" class="btn btn-primary">+ Nuevo Usuario</a>
   </div>
 
-  <div *ngIf="loading" class="loading">Cargando usuarios...</div>
+  <div *ngIf="loading" class="text-center text-white">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2">Cargando usuarios...</p>
+  </div>
   <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
 
   <div *ngIf="!loading && usuarios.length > 0" class="table-container">
@@ -29,7 +34,7 @@
           <td>
             <span class="badge"
                   [class.badge-admin]="usuario.rol === 'ADMIN'"
-                  [class.badge-employee]="usuario.rol === 'LAB_EMPLOYEE'"
+                  [class.badge-employee]="usuario.rol === 'EMPLOYEE'"
                   [class.badge-patient]="usuario.rol === 'PATIENT'">
               {{ getRolLabel(usuario.rol) }}
             </span>

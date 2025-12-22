@@ -18,6 +18,7 @@ import { ServicesComponent } from './components/services/services.component';
 import { ContactComponent } from './components/contact/contact.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { AgendaListComponent } from './components/agenda-list/agenda-list.component';
+import { AdminLabExamComponent } from './components/admin-lab-exam/admin-lab-exam.component';
 import { authGuard, adminGuard, labEmployeeGuard, patientGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -46,6 +47,7 @@ export const routes: Routes = [
   { path: 'laboratorios/editar/:id', component: LaboratorioFormComponent, canActivate: [authGuard, adminGuard] },
   { path: 'examenes/nuevo', component: ExamenFormComponent, canActivate: [authGuard, adminGuard] },
   { path: 'examenes/editar/:id', component: ExamenFormComponent, canActivate: [authGuard, adminGuard] },
+  { path: 'admin/lab-exam', component: AdminLabExamComponent, canActivate: [authGuard, adminGuard] },
 
   // Rutas para LAB_EMPLOYEE y ADMIN
   { path: 'resultados', component: ResultadoListComponent, canActivate: [authGuard, labEmployeeGuard] },
@@ -62,7 +64,9 @@ export const routes: Routes = [
 
   // Rutas para PATIENT
   { path: 'mis-resultados', component: ResultadoListComponent, canActivate: [authGuard, patientGuard] }, // TODO: Filtrar solo sus resultados
-  { path: 'agendar', component: AgendaListComponent, canActivate: [authGuard, patientGuard] },
+  
+  // Ruta de agendamientos - Accesible para todos los roles autenticados (ADMIN, EMPLOYEE, PATIENT)
+  { path: 'agendar', component: AgendaListComponent, canActivate: [authGuard] },
 
   { path: '**', redirectTo: '/' }
 ];
