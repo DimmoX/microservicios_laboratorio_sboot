@@ -3,8 +3,6 @@
 # Backend: Spring Boot con Arquetipos (Controller, Service, Repository)
 # Frontend: Angular con patrón MVC (Model-View-Controller)
 
-version: '3.8'
-
 services:
   # ========================================
   # API Gateway - Spring Cloud Gateway
@@ -185,7 +183,7 @@ services:
   # ========================================
   sonarqube:
     container_name: gestion_labs_sonarqube
-    image: sonarqube:10.8-community
+    image: sonarqube:community
     ports:
       - "9000:9000"
     environment:
