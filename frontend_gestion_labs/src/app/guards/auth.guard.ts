@@ -75,16 +75,22 @@ export const patientGuard = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
+  console.log('🛡️ patientGuard: Verificando acceso...');
+
   if (!authService.isAuthenticated()) {
+    console.log('❌ patientGuard: No autenticado, redirigiendo a login');
     router.navigate(['/login']);
     return false;
   }
 
   return authService.isPatient().pipe(
     map(isPatient => {
+      console.log('🛡️ patientGuard: isPatient =', isPatient);
       if (isPatient) {
+        console.log('✅ patientGuard: Acceso permitido');
         return true;
       }
+      console.log('❌ patientGuard: Acceso denegado, redirigiendo a /');
       router.navigate(['/']);
       alert('Acceso denegado. Esta ruta es solo para pacientes.');
       return false;

@@ -88,7 +88,7 @@ public class LaboratorioController {
      * Crear laboratorio - Solo ADMIN
      */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Map<String, Object>> createLab(@RequestBody LaboratorioDTO dto) {
         logger.info("POST: /labs -> Crear nuevo laboratorio");
         
@@ -119,7 +119,7 @@ public class LaboratorioController {
      * Actualizar laboratorio - Solo ADMIN
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Map<String, Object>> updateLab(@PathVariable Long id, @RequestBody LaboratorioDTO dto) {
         logger.info("PUT: /labs/{} -> Actualizar laboratorio", id);
         
@@ -150,7 +150,7 @@ public class LaboratorioController {
      * Eliminar laboratorio - Solo ADMIN
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Map<String, Object>> deleteLab(@PathVariable Long id) {
         logger.info("DELETE: /labs/{} -> Eliminar laboratorio", id);
         

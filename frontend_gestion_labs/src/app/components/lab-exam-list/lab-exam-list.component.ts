@@ -11,7 +11,12 @@ import { LabExam } from '../../models/lab-exam.model';
     <div class="lab-exam-list">
       <h2>💰 Precios de Exámenes por Laboratorio</h2>
       
-      <div *ngIf="loading" class="loading">Cargando datos...</div>
+      <div *ngIf="loading" class="text-center text-white">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2">Cargando datos...</p>
+      </div>
       <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
 
       <div *ngIf="!loading" class="table-container">

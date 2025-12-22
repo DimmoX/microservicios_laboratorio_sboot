@@ -99,6 +99,7 @@ public class GatewayConfig {
                 .uri(labsServiceUrl))
 
             // Resultados (GET, POST, PUT, DELETE)
+            // El microservicio decodifica el JWT desde el header Authorization
             .route("results-service", r -> r
                 .path("/resultados/**")
                 .uri(resultadosServiceUrl))

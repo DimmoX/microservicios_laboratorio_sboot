@@ -78,7 +78,7 @@ public class TokenBlacklistController {
      * Útil para monitoreo y debugging.
      */
     @GetMapping("/size")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Map<String, Object>> getBlacklistSize() {
         Map<String, Object> response = new LinkedHashMap<>();
         

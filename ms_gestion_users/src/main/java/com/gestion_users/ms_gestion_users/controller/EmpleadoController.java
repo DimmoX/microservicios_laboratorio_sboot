@@ -1,17 +1,24 @@
 package com.gestion_users.ms_gestion_users.controller;
 
-import com.gestion_users.ms_gestion_users.model.EmpleadoModel;
-import com.gestion_users.ms_gestion_users.service.empleado.EmpleadoService;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import com.gestion_users.ms_gestion_users.model.EmpleadoModel;
+import com.gestion_users.ms_gestion_users.service.empleado.EmpleadoService;
 
 @RestController
 @RequestMapping("/empleados")
@@ -25,7 +32,7 @@ public class EmpleadoController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'LAB_EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<Map<String, Object>> getAllEmployees() {
         logger.info("GET: /empleados -> Listar todos los empleados");
         
@@ -53,7 +60,7 @@ public class EmpleadoController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'LAB_EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<Map<String, Object>> getEmployeeById(@PathVariable Long id) {
         logger.info("GET: /empleados/{} -> Obtener empleado por ID", id);
         
@@ -81,7 +88,7 @@ public class EmpleadoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Map<String, Object>> createEmployee(@RequestBody EmpleadoModel empleado) {
         logger.info("POST: /empleados -> Crear nuevo empleado");
         
@@ -109,7 +116,7 @@ public class EmpleadoController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Map<String, Object>> updateEmployee(@PathVariable Long id, @RequestBody EmpleadoModel empleado) {
         logger.info("PUT: /empleados/{} -> Actualizar empleado", id);
         
@@ -137,7 +144,7 @@ public class EmpleadoController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Map<String, Object>> deleteEmployee(@PathVariable Long id) {
         logger.info("DELETE: /empleados/{} -> Eliminar empleado", id);
         

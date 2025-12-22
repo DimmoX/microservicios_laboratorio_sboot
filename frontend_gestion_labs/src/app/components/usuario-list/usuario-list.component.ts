@@ -41,7 +41,7 @@ export class UsuarioListComponent implements OnInit {
   getRolLabel(rol: string): string {
     const labels: any = {
       'ADMIN': 'Administrador',
-      'LAB_EMPLOYEE': 'Empleado de Laboratorio',
+      'EMPLOYEE': 'Empleado',
       'PATIENT': 'Paciente'
     };
     return labels[rol] || rol;

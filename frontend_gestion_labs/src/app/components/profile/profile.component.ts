@@ -117,16 +117,28 @@ export class ProfileComponent implements OnInit {
     if (!this.usuario) return;
     this.loading = true;
     this.successMessage = '';
-    // Aquí deberías llamar al método de actualización real si existe en el backend
-    // Por ahora solo refresca el perfil
-    this.authService.getProfile().subscribe({
-      next: (user) => {
-        this.usuario = user;
+    this.errorMessage = '';
+    
+    // Preparar datos a actualizar
+    const updates = {
+      nombre: this.usuario.nombre,
+      telefono: this.usuario.telefono,
+      direccion: this.usuario.direccion
+    };
+    
+    // Llamar al servicio de actualización
+    this.authService.updateProfile(this.usuario.id, updates).subscribe({
+      next: (response) => {
         this.loading = false;
         this.successMessage = 'Perfil actualizado correctamente';
+        // Actualizar los datos locales con la respuesta del servidor
+        if (response.data) {
+          this.usuario = { ...this.usuario!, ...response.data };
+        }
       },
-      error: () => {
+      error: (error) => {
         this.loading = false;
+        this.errorMessage = 'Error al actualizar el perfil: ' + (error.error?.description || error.message);
       }
     });
   }
@@ -137,7 +149,7 @@ export class ProfileComponent implements OnInit {
       return;
     }
     this.errorMessage = '';
-    this.authService.changePassword(this.usuario.id!, this.oldPassword, this.newPassword).subscribe({
+    this.authService.changePassword(this.oldPassword, this.newPassword).subscribe({
       next: () => {
         this.successMessage = 'Contraseña cambiada correctamente';
         this.oldPassword = '';

@@ -179,11 +179,9 @@ El filtro `JwtAuthenticationFilter` extrae el rol del token y lo asigna como aut
 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
     username, 
     null, 
-    Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
+    Collections.singletonList(new SimpleGrantedAuthority(role))
 );
 ```
-
-**Nota**: Spring Security añade automáticamente el prefijo `ROLE_` a los roles.
 
 ---
 
@@ -391,11 +389,9 @@ Authorization: Bearer <tu_token_jwt>
 
 ## 📌 Notas Importantes
 
-1. **Prefijo ROLE_**: Spring Security añade automáticamente el prefijo `ROLE_` a los roles. En la base de datos se guarda `ADMIN`, pero en las anotaciones se usa `hasRole('ADMIN')`.
-
-2. **hasRole vs hasAnyRole**:
+1. **hasRole vs hasAnyRole**:
    - `hasRole('ADMIN')`: Solo usuarios con rol ADMIN
-   - `hasAnyRole('ADMIN', 'LAB_EMPLOYEE')`: Usuarios con rol ADMIN O LAB_EMPLOYEE
+   - `hasAnyRole('ADMIN', 'EMPLOYEE')`: Usuarios con rol ADMIN O EMPLOYEE
 
 3. **Orden de Evaluación**: La seguridad se evalúa ANTES de ejecutar el método del controlador.
 

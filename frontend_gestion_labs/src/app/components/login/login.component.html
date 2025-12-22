@@ -78,9 +78,9 @@
     <div class="test-credentials">
       <p><strong>💡 Credenciales de prueba:</strong></p>
       <ul>
-        <li>👤 <strong>felipe.munoz&#64;laboratorioandino.cl</strong> / 12345 <span style="color: #888">(LAB_EMPLOYEE)</span></li>
-        <li>👤 <strong>constanza.araya&#64;clinicabiosalud.cl</strong> / 12345 <span style="color: #888">(LAB_EMPLOYEE)</span></li>
-        <li>👤 <strong>matias.carrasco&#64;centrodiagnosticopacifico.cl</strong> / 12345 <span style="color: #888">(LAB_EMPLOYEE)</span></li>
+        <li>👤 <strong>felipe.munoz&#64;laboratorioandino.cl</strong> / 12345 <span style="color: #888">(EMPLOYEE)</span></li>
+        <li>👤 <strong>constanza.araya&#64;clinicabiosalud.cl</strong> / 12345 <span style="color: #888">(EMPLOYEE)</span></li>
+        <li>👤 <strong>matias.carrasco&#64;cdpacifico.cl</strong> / 12345 <span style="color: #888">(EMPLOYEE)</span></li>
         <li>👤 <strong>camila.rojas&#64;correo.cl</strong> / 12345 <span style="color: #888">(PATIENT)</span></li>
         <li>👤 <strong>benjamin.gonzalez&#64;correo.cl</strong> / 12345 <span style="color: #888">(PATIENT)</span></li>
         <li>👤 <strong>isidora.munoz&#64;correo.cl</strong> / 12345 <span style="color: #888">(PATIENT)</span></li>
@@ -89,3 +89,9 @@
     </div>
   </div>
 </div>
+
+<!-- Modal para cambio de contraseña temporal -->
+<app-change-password-modal 
+  *ngIf="showChangePasswordModal"
+  (passwordChanged)="onPasswordChanged()">
+</app-change-password-modal>

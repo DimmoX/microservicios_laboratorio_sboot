@@ -63,24 +63,40 @@ import { RouterLink } from '@angular/router';
     .services-hero { background: linear-gradient(135deg, #0369a1 0%, #06b6d4 100%); color: white;
       padding: 3rem 2rem; text-align: center; }
     .services-hero h1 { font-size: 2.5rem; margin-bottom: 1rem; color: white; }
-    .services-hero p { color: white; }
+    .services-hero p { color: white; font-size: 1.2rem; }
     .services-content { background: #f9fafb; padding: 4rem 2rem; width: 100%; }
     .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto; }
     .service-category { background: white; padding: 2rem; border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.3s; }
+    .service-category:hover { transform: translateY(-5px); }
     .service-category h2 { color: #0369a1; margin-bottom: 1.5rem; }
     ul { list-style: none; padding: 0; }
     li { padding: 0.5rem 0; color: #555; border-bottom: 1px solid #f0f0f0; }
     li:last-child { border-bottom: none; }
-    .cta { background: #f9fafb; padding: 3rem 2rem; text-align: center; }
+    .cta { background: white; padding: 3rem 2rem; text-align: center; }
     .cta h2 { color: #333; margin-bottom: 1.5rem; }
     .btn { padding: 0.875rem 2rem; background: #0369a1; color: white; text-decoration: none;
       border-radius: 8px; display: inline-block; font-weight: 600; transition: all 0.3s;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     .btn:hover { background: #075985; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transform: translateY(-2px); }
+    
+    /* Mobile */
     @media (max-width: 767px) {
+      .services-hero { padding: 2rem 1rem; }
+      .services-hero h1 { font-size: 1.75rem; }
+      .services-hero p { font-size: 1rem; }
+      .services-content { padding: 2rem 1rem; }
+      .services-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+      .service-category { padding: 1.5rem; }
+      .cta { padding: 2rem 1rem; }
+    }
+    
+    /* Tablet */
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .services-hero { padding: 2.5rem 1.5rem; }
       .services-hero h1 { font-size: 2rem; }
-      .services-content { grid-template-columns: 1fr; }
+      .services-content { padding: 3rem 1.5rem; }
+      .services-grid { grid-template-columns: repeat(2, 1fr); }
     }
   `]
 })

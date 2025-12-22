@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -42,7 +43,7 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'LAB_EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<Map<String, Object>> getAllUsers() {
         logger.info("GET: /users -> Listar todos los usuarios");
         
@@ -74,7 +75,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'LAB_EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<Map<String, Object>> getUserById(@PathVariable Long id) {
         logger.info("GET: /users/{} -> Obtener usuario por ID", id);
         
@@ -106,7 +107,7 @@ public class UserController {
     // ========== ENDPOINTS SOLO PARA ADMIN ==========
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'LAB_EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<Map<String, Object>> createUser(@RequestBody UsuarioModel usuario) {
         logger.info("POST: /users -> Crear nuevo usuario: {} con rol: {}", usuario.getUsername(), usuario.getRole());
         
@@ -125,10 +126,10 @@ public class UserController {
             // Validar permisos según el rol del usuario que crea
             String targetRole = usuario.getRole() != null ? usuario.getRole().toUpperCase() : "";
             
-            if (currentUserRole.equals("ROLE_LAB_EMPLOYEE")) {
-                // LAB_EMPLOYEE solo puede crear usuarios PATIENT
+            if (currentUserRole.equals("EMPLOYEE")) {
+                // EMPLOYEE solo puede crear usuarios PATIENT
                 if (!targetRole.equals("PATIENT")) {
-                    logger.warn("LAB_EMPLOYEE intentó crear usuario con rol: {}", targetRole);
+                    logger.warn("EMPLOYEE intentó crear usuario con rol: {}", targetRole);
                     response.put("code", "403");
                     response.put("description", "No tiene permisos para crear usuarios con rol " + targetRole + ". Solo puede crear usuarios PATIENT.");
                     response.put("data", new LinkedHashMap<>());
@@ -160,9 +161,9 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Map<String, Object>> updateUser(@PathVariable Long id, @RequestBody UsuarioUpdateRequest updates) {
-        logger.info("PUT: /users/{} -> Actualizar usuario", id);
+        logger.info("PUT: /users/{} -> Actualizar usuario (ADMIN)", id);
         
         Map<String, Object> response = new LinkedHashMap<>();
         
@@ -189,8 +190,58 @@ public class UserController {
         }
     }
 
+    /**
+     * Endpoint para que un usuario actualice su propio perfil
+     * Cualquier usuario autenticado puede actualizar su propia información
+     */
+    @PutMapping("/profile")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'PATIENT')")
+    public ResponseEntity<Map<String, Object>> updateOwnProfile(
+            @RequestBody UsuarioUpdateRequest updates,
+            @RequestHeader(value = "Authorization", required = true) String authHeader) {
+        logger.info("PUT: /users/profile -> Actualizar perfil propio");
+        
+        Map<String, Object> response = new LinkedHashMap<>();
+        
+        try {
+            // Extraer userId del token JWT
+            String token = authHeader.replace("Bearer ", "");
+            Long userId = usuarioProfileService.extractUserIdFromToken(token);
+            
+            if (userId == null) {
+                response.put("code", "401");
+                response.put("description", "No se pudo obtener el ID del usuario del token");
+                response.put("data", new LinkedHashMap<>());
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            logger.info("Usuario con ID {} actualizando su propio perfil", userId);
+            
+            // Actualizar el perfil del usuario
+            UsuarioModel usuarioActualizado = service.update(userId, updates);
+            logger.info("Perfil del usuario con ID: {} actualizado exitosamente", userId);
+
+            UsuarioResponse data = usuarioProfileService.buildProfile(usuarioActualizado);
+            
+            response.put("code", "000");
+            response.put("description", "Perfil actualizado exitosamente");
+            response.put("data", data);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Error al actualizar perfil: {}", e.getMessage(), e);
+            
+            response.put("code", "001");
+            response.put("description", "Error al actualizar perfil: " + e.getMessage());
+            response.put("data", new LinkedHashMap<>());
+            
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Map<String, Object>> deleteUser(@PathVariable Long id) {
         logger.info("DELETE: /users/{} -> Eliminar usuario", id);
         
@@ -218,7 +269,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}/password")
-    @PreAuthorize("hasAnyRole('ADMIN', 'LAB_EMPLOYEE', 'PATIENT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'PATIENT')")
     public ResponseEntity<Map<String, Object>> changePassword(@PathVariable Long id, @RequestBody ChangePasswordRequest request) {
         logger.info("PUT: /users/{}/password -> Cambiar contraseña", id);
 

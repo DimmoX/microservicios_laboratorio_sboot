@@ -116,22 +116,64 @@ export class AuthService {
   }
 
   /**
-   * Cambiar contraseña del usuario actual
-   * Endpoint: PUT /users/{id}/password
+   * Recuperar contraseña
+   * Endpoint: POST /auth/forgot-password
+   * Devuelve la contraseña temporal generada
    */
-  changePassword(userId: number, oldPassword: string, newPassword: string): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/users/${userId}/password`, {
+  forgotPassword(email: string): Observable<string> {
+    return this.http.post<any>(`${this.apiUrl}/auth/forgot-password`, { email })
+      .pipe(
+        map(response => {
+          console.log('📡 Respuesta completa del backend:', response);
+          console.log('📡 response.data:', response.data);
+          console.log('📡 response.data?.temporaryPassword:', response.data?.temporaryPassword);
+          const password = response.data?.temporaryPassword || '';
+          console.log('📡 Password extraída:', password);
+          return password;
+        })
+      );
+  }
+
+  /**
+   * Cambiar contraseña (para contraseñas temporales)
+   * Endpoint: POST /change-password
+   */
+  changePassword(oldPassword: string, newPassword: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/change-password`, {
       oldPassword,
       newPassword
     });
   }
 
   /**
-   * Recuperar contraseña
-   * Endpoint: POST /auth/forgot-password
+   * Decodifica un JWT (sin verificar la firma, solo para leer claims)
    */
-  forgotPassword(email: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/auth/forgot-password`, { email });
+  private decodeToken(token: string): any {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      console.error('Error decodificando token:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Verifica si el token actual requiere cambio de contraseña
+   */
+  requiresPasswordChange(): boolean {
+    const token = this.getToken();
+    if (!token) return false;
+    
+    const decoded = this.decodeToken(token);
+    return decoded?.requiresPasswordChange === true;
   }
 
   /**
@@ -171,19 +213,32 @@ export class AuthService {
     if (!this.isAuthenticated()) {
       return of(false);
     }
-    return of(this.getCurrentUserSync()?.rol?.toUpperCase() === 'ADMIN').pipe(delay(50));
+    const token = this.getToken();
+    if (!token) return of(false);
+    
+    const decoded = this.decodeToken(token);
+    const role = decoded?.role || decoded?.rol;
+    return of(role?.toUpperCase() === 'ADMIN').pipe(delay(50));
   }
 
   /**
-   * Verifica si el usuario actual es LAB_EMPLOYEE o ADMIN
+   * Verifica si el usuario actual es EMPLOYEE/LAB_EMPLOYEE o ADMIN
    */
   isLabEmployeeOrAdmin(): Observable<boolean> {
     if (!this.isAuthenticated()) {
       return of(false);
     }
-    const user = this.getCurrentUserSync();
-    const rol = user?.rol?.toUpperCase();
-    return of(rol === 'ADMIN' || rol === 'LAB_EMPLOYEE').pipe(delay(50));
+    const token = this.getToken();
+    if (!token) return of(false);
+    
+    const decoded = this.decodeToken(token);
+    const role = decoded?.role || decoded?.rol;
+    const roleUpper = role?.toUpperCase();
+    return of(
+      roleUpper === 'ADMIN' || 
+      roleUpper === 'EMPLOYEE' ||
+      roleUpper === 'LAB_EMPLOYEE'
+    ).pipe(delay(50));
   }
 
   /**
@@ -191,9 +246,22 @@ export class AuthService {
    */
   isPatient(): Observable<boolean> {
     if (!this.isAuthenticated()) {
+      console.log('❌ isPatient: Usuario no autenticado');
       return of(false);
     }
-    return of(this.getCurrentUserSync()?.rol?.toUpperCase() === 'PATIENT').pipe(delay(50));
+    const token = this.getToken();
+    if (!token) {
+      console.log('❌ isPatient: No hay token');
+      return of(false);
+    }
+    
+    const decoded = this.decodeToken(token);
+    console.log('🔍 isPatient - Token decodificado:', decoded);
+    const role = decoded?.role || decoded?.rol;
+    console.log('🔍 isPatient - Role extraído:', role);
+    const isPatient = role?.toUpperCase() === 'PATIENT';
+    console.log('✓ isPatient resultado:', isPatient);
+    return of(isPatient).pipe(delay(50));
   }
 
   /**
@@ -217,15 +285,16 @@ export class AuthService {
   }
 
   /**
-   * Actualiza perfil del usuario
-   * Endpoint: PUT /users/{id}
+   * Actualiza perfil del usuario autenticado
+   * Endpoint: PUT /users/profile
    */
   updateProfile(userId: number, updates: Partial<Usuario>): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/users/${userId}`, updates).pipe(
+    // Usar endpoint /users/profile que permite a cualquier usuario actualizar su propio perfil
+    return this.http.put<any>(`${this.apiUrl}/users/profile`, updates).pipe(
       tap(response => {
-        // Actualizar sesión local si es el usuario actual
+        // Actualizar sesión local con los nuevos datos
         const session = this.getCurrentSessionSync();
-        if (session && session.usuario.id === userId && response.data) {
+        if (session && response.data) {
           session.usuario = { ...session.usuario, ...response.data };
           sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
         }
@@ -233,4 +302,3 @@ export class AuthService {
     );
   }
 }
-

@@ -38,7 +38,9 @@ public class JwtGlobalFilter implements GlobalFilter, Ordered {
     private static final List<String> PUBLIC_PATHS = List.of(
         "/auth/login",
         "/auth/logout",
-        "/labs"  // Solo GET /labs y /labs/{id} son públicas, se valida el método después
+        "/auth/forgot-password",
+        "/labs",  // Solo GET /labs y /labs/{id} son públicas, se valida el método después
+        "/registro/paciente"  // POST para registro público de pacientes
     );
 
     public JwtGlobalFilter(JwtProperties jwtProperties, TokenBlacklistService blacklistService) {
@@ -123,7 +125,8 @@ public class JwtGlobalFilter implements GlobalFilter, Ordered {
             logger.info("✓ {} {} - Usuario: {} [{}] (pacienteId={}, empleadoId={})", 
                 method, path, username, role, pacienteId, empleadoId);
 
-            // Continuar - los filtros de ruta leerán los atributos
+            // El header Authorization ya está presente en el request original
+            // Spring Cloud Gateway lo reenvía automáticamente por defecto
             return chain.filter(exchange);
             
         } catch (Exception e) {
@@ -139,8 +142,13 @@ public class JwtGlobalFilter implements GlobalFilter, Ordered {
     }
     
     private boolean isPublicPath(String path, String method) {
-        // Login y logout son siempre públicos
-        if (path.startsWith("/auth/login") || path.startsWith("/auth/logout")) {
+        // Login, logout y forgot-password son siempre públicos
+        if (path.startsWith("/auth/login") || path.startsWith("/auth/logout") || path.startsWith("/auth/forgot-password")) {
+            return true;
+        }
+        
+        // Registro de paciente es público (POST)
+        if (path.startsWith("/registro/paciente") && "POST".equals(method)) {
             return true;
         }
         

@@ -12,8 +12,8 @@ services:
   api-gateway:
     container_name: gestion_labs_api_gateway
     build:
-      context: ./ms_api_gateway
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ms_api_gateway/Dockerfile
     ports:
       - "8080:8080"
     environment:
@@ -46,8 +46,8 @@ services:
   labs-service:
     container_name: gestion_labs_backend
     build:
-      context: ./ms_gestion_labs
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ms_gestion_labs/Dockerfile
     expose:
       - "8081"
     environment:
@@ -86,8 +86,8 @@ services:
   resultados-service:
     container_name: gestion_labs_resultados
     build:
-      context: ./ms_gestion_resultados
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ms_gestion_resultados/Dockerfile
     expose:
       - "8082"
     environment:
@@ -126,8 +126,8 @@ services:
   users-service:
     container_name: gestion_labs_users
     build:
-      context: ./ms_gestion_users
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ms_gestion_users/Dockerfile
     expose:
       - "8083"
     environment:
@@ -180,6 +180,45 @@ services:
       - labs_network
     restart: unless-stopped
 
+  # ========================================
+  # SonarQube - Análisis de Calidad de Código
+  # ========================================
+  sonarqube:
+    container_name: gestion_labs_sonarqube
+    image: sonarqube:10.8-community
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_JDBC_URL=jdbc:postgresql://sonarqube-db:5432/sonar
+      - SONAR_JDBC_USERNAME=sonar
+      - SONAR_JDBC_PASSWORD=sonarpass
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    depends_on:
+      - sonarqube-db
+    networks:
+      - labs_network
+    restart: unless-stopped
+
+  # ========================================
+  # PostgreSQL para SonarQube
+  # ========================================
+  sonarqube-db:
+    container_name: gestion_labs_sonarqube_db
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonarpass
+      - POSTGRES_DB=sonar
+    volumes:
+      - sonarqube_db:/var/lib/postgresql/data
+    networks:
+      - labs_network
+    restart: unless-stopped
+
 # ========================================
 # Redes
 # ========================================
@@ -193,4 +232,12 @@ networks:
 # ========================================
 volumes:
   logs:
+    driver: local
+  sonarqube_data:
+    driver: local
+  sonarqube_extensions:
+    driver: local
+  sonarqube_logs:
+    driver: local
+  sonarqube_db:
     driver: local

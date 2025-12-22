@@ -1,0 +1,59 @@
+<div class="pacientes-list">
+  <div class="header-section">
+    <h2>🩺 Gestión de Pacientes</h2>
+    <a routerLink="/pacientes/nuevo" class="btn btn-primary">+ Nuevo Paciente</a>
+  </div>
+
+  <div *ngIf="loading" class="text-center text-white">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2">Cargando pacientes...</p>
+  </div>
+  <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+
+  <div *ngIf="!loading && pacientes.length > 0" class="table-container">
+    <table class="pacientes-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Email/Username</th>
+          <th>RUT</th>
+          <th>Teléfono</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let paciente of pacientes">
+          <td>{{ paciente.id }}</td>
+          <td>{{ paciente.nombre }}</td>
+          <td>{{ paciente.username }}</td>
+          <td>{{ paciente.rut || '-' }}</td>
+          <td>{{ paciente.telefono || '-' }}</td>
+          <td>
+            <span class="status" [class.active]="paciente.activo" [class.inactive]="!paciente.activo">
+              {{ paciente.activo ? '✓ Activo' : '✗ Inactivo' }}
+            </span>
+          </td>
+          <td class="action-buttons">
+            <a [routerLink]="['/pacientes/editar', paciente.id]" class="btn btn-success btn-sm">✏️ Editar</a>
+            <button (click)="toggleEstado(paciente)" class="btn btn-warning btn-sm">
+              {{ paciente.activo ? '🚫 Desactivar' : '✓ Activar' }}
+            </button>
+            <button (click)="eliminarPaciente(paciente.id)" class="btn btn-danger btn-sm">🗑️ Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="!loading && pacientes.length === 0" class="empty-state">
+    <div class="empty-card">
+      <h3>No hay pacientes registrados</h3>
+      <p>Aún no se han registrado pacientes en el sistema.</p>
+      <a routerLink="/pacientes/nuevo" class="btn btn-primary">+ Crear Primer Paciente</a>
+    </div>
+  </div>
+</div>

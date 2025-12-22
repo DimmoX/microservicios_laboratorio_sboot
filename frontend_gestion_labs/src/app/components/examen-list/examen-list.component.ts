@@ -15,7 +15,12 @@ import { Examen } from '../../models/examen.model';
         <a routerLink="/examenes/nuevo" class="btn btn-primary">+ Nuevo Examen</a>
       </div>
 
-      <div *ngIf="loading" class="loading">Cargando exámenes...</div>
+      <div *ngIf="loading" class="text-center text-white">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2">Cargando exámenes...</p>
+      </div>
       <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
 
       <div *ngIf="!loading && examenes.length > 0" class="grid">
@@ -48,6 +53,23 @@ import { Examen } from '../../models/examen.model';
     .action-buttons { display: flex; gap: 8px; margin-top: 15px; }
     .loading, .error { color: white; text-align: center; font-size: 1.2rem; max-width: 1200px; margin: 0 auto; }
     .empty-state { text-align: center; padding: 60px 20px; background: white; border-radius: 8px; max-width: 600px; margin: 0 auto; }
+    
+    /* Mobile */
+    @media (max-width: 767px) {
+      .examen-list { padding: 2rem 1rem; }
+      .header-section { flex-direction: column; gap: 15px; align-items: stretch; }
+      .header-section h2 { font-size: 1.5rem; text-align: center; }
+      .grid { grid-template-columns: 1fr; gap: 1.5rem; }
+      .card { padding: 1.25rem; }
+      .action-buttons { flex-direction: column; }
+      .action-buttons .btn-sm { width: 100%; }
+    }
+    
+    /* Tablet */
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .examen-list { padding: 3rem 1.5rem; }
+      .grid { grid-template-columns: repeat(2, 1fr); gap: 1.75rem; }
+    }
   `]
 })
 export class ExamenListComponent implements OnInit {
