@@ -1,122 +1,155 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-# ============================================================
-# Análisis SonarQube para todos los microservicios
-# - Sin variables de entorno: todo configurado aquí (modo educacional)
-# - Ejecuta cada análisis en un contenedor Maven con Java 21
-# - Usa la red de Docker donde corre SonarQube
-# ============================================================
+echo "=========================================="
+echo "🧪 EJECUTANDO TESTS Y ANÁLISIS SONARQUBE"
+echo "   (Proyectos Individuales)"
+echo "=========================================="
+echo ""
 
-set -euo pipefail
+# Token de SonarQube
+SONAR_TOKEN=${SONAR_TOKEN:-"sqa_a088d3845350d8295b81b338c4122f619041021a"}
+SONAR_HOST="http://localhost:9000"
 
-# ==========================
-# Configuración SonarQube
-# ==========================
-SONAR_HOST_URL="http://sonarqube:9000"          # Nombre del contenedor en docker-compose
-SONAR_HOST_URL_LOCAL="http://localhost:9000"    # Para validación desde la máquina host
-SONAR_TOKEN="sqp_1c4400f5ca6e7bf5239aa731bd77016af63ac91c"
+# Colores para output
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
 
-# Directorio raíz (para montar en los contenedores)
-ROOT_DIR="$(pwd)"
+# Función para ejecutar tests y análisis en un microservicio
+analyze_microservice() {
+    local service_name=$1
+    local service_path=$2
+    local project_key=$3
+    
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}📦 Analizando: ${service_name}${NC}"
+    echo -e "${BLUE}   ProjectKey: ${project_key}${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    
+    cd "$service_path" || exit
+    
+    echo -e "${YELLOW}🧪 Ejecutando tests, JaCoCo y SonarQube...${NC}"
+    mvn clean verify sonar:sonar \
+        -Dsonar.projectKey=${project_key} \
+        -Dsonar.projectName="${service_name}" \
+        -Dsonar.host.url=${SONAR_HOST} \
+        -Dsonar.token=${SONAR_TOKEN}
+    
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}✅ Análisis de ${service_name} completado${NC}"
+        echo -e "${GREEN}   Dashboard: ${SONAR_HOST}/dashboard?id=${project_key}${NC}"
+        cd - > /dev/null
+        return 0
+    else
+        echo -e "${RED}❌ Error en análisis de ${service_name}${NC}"
+        cd - > /dev/null
+        return 1
+    fi
+}
 
-# Red de Docker donde está SonarQube
-SONAR_NETWORK="labs_network"
+# Función especial para API Gateway (usa mvnw)
+analyze_api_gateway() {
+    local service_name=$1
+    local service_path=$2
+    local project_key=$3
+    
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}📦 Analizando: ${service_name}${NC}"
+    echo -e "${BLUE}   ProjectKey: ${project_key}${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    
+    cd "$service_path" || exit
+    
+    echo -e "${YELLOW}🧪 Ejecutando tests, JaCoCo y SonarQube...${NC}"
+    ./mvnw clean verify sonar:sonar \
+        -Dsonar.projectKey=${project_key} \
+        -Dsonar.projectName="${service_name}" \
+        -Dsonar.host.url=${SONAR_HOST} \
+        -Dsonar.token=${SONAR_TOKEN}
+    
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}✅ Análisis de ${service_name} completado${NC}"
+        echo -e "${GREEN}   Dashboard: ${SONAR_HOST}/dashboard?id=${project_key}${NC}"
+        cd - > /dev/null
+        return 0
+    else
+        echo -e "${RED}❌ Error en análisis de ${service_name}${NC}"
+        cd - > /dev/null
+        return 1
+    fi
+}
 
-# Microservicios a analizar (formato: ruta:projectKey:projectName)
-MODULES=(
-  "ms_api_gateway:laboratorios-api-gateway:Laboratorios - API Gateway"
-  "ms_gestion_labs:laboratorios-gestion-labs:Laboratorios - Gestión Labs"
-  "ms_gestion_resultados:laboratorios-gestion-resultados:Laboratorios - Gestión Resultados"
-  "ms_gestion_users:laboratorios-gestion-usuarios:Laboratorios - Gestión Usuarios"
+# Verificar que SonarQube esté corriendo
+echo -e "${YELLOW}🔍 Verificando conexión con SonarQube...${NC}"
+if ! curl -s -o /dev/null -w "%{http_code}" "${SONAR_HOST}" | grep -q "200\|301\|302"; then
+    echo -e "${RED}❌ Error: SonarQube no está disponible en ${SONAR_HOST}${NC}"
+    echo -e "${YELLOW}💡 Asegúrate de que SonarQube esté corriendo (docker-compose up sonarqube)${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✅ SonarQube está disponible${NC}"
+echo ""
+
+# Directorio raíz del proyecto
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT_DIR"
+
+# Array de microservicios con sus projectKeys
+declare -a services=(
+    "MS Gestion Labs:ms_gestion_labs:ms-gestion-labs"
+    "MS Gestion Users:ms_gestion_users:ms-gestion-users"
+    "MS Gestion Resultados:ms_gestion_resultados:ms-gestion-resultados"
 )
 
-# ==========================
-# Helpers
-# ==========================
-echo_header() {
-  echo "============================================================"
-  echo "$1"
-  echo "============================================================"
-}
+# Contador de éxitos y fallos
+success_count=0
+fail_count=0
 
-wait_for_sonar() {
-  echo_header "Verificando disponibilidad de SonarQube..."
-  local status=""
-
-  for i in {1..60}; do
-    status="$(curl -s "${SONAR_HOST_URL_LOCAL}/api/system/status" | sed -n 's/.*"status":"\([^"]*\)".*/\1/p' || true)"
-    if [[ "$status" == "UP" ]]; then
-      echo "✅ SonarQube OK (status=UP)"
-      return 0
+# Analizar cada microservicio
+for service in "${services[@]}"; do
+    IFS=':' read -r name path key <<< "$service"
+    
+    if analyze_microservice "$name" "$ROOT_DIR/$path" "$key"; then
+        ((success_count++))
+    else
+        ((fail_count++))
     fi
-    echo "Esperando SonarQube... (status=${status:-N/A}) intento ${i}/60"
-    sleep 2
-  done
-
-  echo "❌ ERROR: SonarQube no respondió en ${SONAR_HOST_URL_LOCAL}"
-  exit 1
-}
-
-analyze_module() {
-  local module_spec="$1"
-  local module project_key project_name
-
-  IFS=":" read -r module project_key project_name <<< "${module_spec}"
-
-  echo_header "Analizando: ${project_name} (${module})"
-
-  if [[ ! -d "${module}" ]]; then
-    echo "⚠️  Directorio ${module} no existe. Saltando..."
-    return 1
-  fi
-
-  docker run --rm \
-    --name "sonar-analysis-${module}" \
-    --network="${SONAR_NETWORK}" \
-    -v "${ROOT_DIR}/${module}:/workspace" \
-    -v "${HOME}/.m2:/root/.m2" \
-    -w /workspace \
-    maven:3.9.6-eclipse-temurin-21 \
-    mvn clean verify sonar:sonar \
-      -Dsonar.projectKey="${project_key}" \
-      -Dsonar.projectName="${project_name}" \
-      -Dsonar.host.url="${SONAR_HOST_URL}" \
-      -Dsonar.token="${SONAR_TOKEN}"
-
-  if [ $? -eq 0 ]; then
-    echo "✅ ${project_name} analizado correctamente"
-    return 0
-  else
-    echo "❌ Error al analizar ${project_name}"
-    return 1
-  fi
-}
-
-# ==========================
-# Main
-# ==========================
-wait_for_sonar
-
-echo_header "Iniciando análisis SonarQube"
-echo "Host Sonar: ${SONAR_HOST_URL}"
-echo "Red Docker: ${SONAR_NETWORK}"
-echo ""
-
-SUCCESS_COUNT=0
-FAIL_COUNT=0
-
-for module_spec in "${MODULES[@]}"; do
-  if analyze_module "${module_spec}"; then
-    SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
-  else
-    FAIL_COUNT=$((FAIL_COUNT + 1))
-  fi
-  echo ""
+    
+    echo ""
 done
 
-echo_header "Resumen Final"
-echo "✅ Analizados exitosamente: ${SUCCESS_COUNT}"
-echo "❌ Con errores: ${FAIL_COUNT}"
+# Analizar API Gateway (caso especial con mvnw)
+if analyze_api_gateway "MS API Gateway" "$ROOT_DIR/ms_api_gateway" "ms-api-gateway"; then
+    ((success_count++))
+else
+    ((fail_count++))
+fi
+
 echo ""
-echo "📊 Ver resultados: ${SONAR_HOST_URL_LOCAL}/projects"
+# Resumen final
+echo -e "${BLUE}=========================================="
+echo "📊 RESUMEN DE ANÁLISIS"
+echo -e "==========================================${NC}"
+echo -e "${GREEN}✅ Exitosos: ${success_count}${NC}"
+echo -e "${RED}❌ Fallidos: ${fail_count}${NC}"
 echo ""
+echo -e "${BLUE}🔗 Dashboards individuales:${NC}"
+echo "   ${SONAR_HOST}/dashboard?id=ms-gestion-labs"
+echo "   ${SONAR_HOST}/dashboard?id=ms-gestion-users"
+echo "   ${SONAR_HOST}/dashboard?id=ms-gestion-resultados"
+echo "   ${SONAR_HOST}/dashboard?id=ms-api-gateway"
+echo ""
+echo -e "${BLUE}📋 Ver todos los proyectos:${NC}"
+echo "   ${SONAR_HOST}/projects"
+echo ""
+
+if [ $fail_count -eq 0 ]; then
+    echo -e "${GREEN}🎉 ¡Todos los análisis se completaron exitosamente!${NC}"
+    exit 0
+else
+    echo -e "${YELLOW}⚠️  Algunos análisis fallaron. Revisa los logs arriba.${NC}"
+    exit 1
+fi
