@@ -45,53 +45,6 @@ import { Usuario } from './models/usuario.model';
                 <a class="nav-link" routerLink="/contacto" routerLinkActive="active">Contacto</a>
               </li>
 
-              <!-- Authenticated User Links -->
-              <ng-container *ngIf="isAuthenticated">
-                <li class="nav-item">
-                  <a class="nav-link" routerLink="/precios" routerLinkActive="active">Precios</a>
-                </li>
-
-                <!-- Admin and Lab Employee Links -->
-                <ng-container *ngIf="isAdmin || isLabEmployee">
-                  <li class="nav-item">
-                    <a class="nav-link" routerLink="/examenes" routerLinkActive="active">Exámenes</a>
-                  </li>
-                </ng-container>
-
-                <!-- Admin Links -->
-                <ng-container *ngIf="isAdmin">
-                  <li class="nav-item">
-                    <a class="nav-link" routerLink="/laboratorios" routerLinkActive="active">Laboratorios</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" routerLink="/admin/lab-exam" routerLinkActive="active">Asignación de Precios</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" routerLink="/resultados" routerLinkActive="active">Resultados</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" routerLink="/usuarios" routerLinkActive="active">Usuarios</a>
-                  </li>
-                </ng-container>
-
-                <!-- Lab Employee Links -->
-                <ng-container *ngIf="isLabEmployee">
-                  <li class="nav-item">
-                    <a class="nav-link" routerLink="/resultados" routerLinkActive="active">Resultados</a>
-                  </li>
-                </ng-container>
-
-                <!-- Patient Links -->
-                <ng-container *ngIf="isPatient">
-                  <li class="nav-item">
-                    <a class="nav-link" routerLink="/mis-resultados" routerLinkActive="active">Mis Resultados</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" routerLink="/agendar" routerLinkActive="active">Agendar</a>
-                  </li>
-                </ng-container>
-              </ng-container>
-
               <!-- Guest User Buttons -->
               <ng-container *ngIf="!isAuthenticated">
                 <li class="nav-item ms-xl-2 mt-2 mt-xl-0">
@@ -271,7 +224,7 @@ export class AppComponent implements OnInit {
         if (user && user.rol) {
           const rol = user.rol.toUpperCase();
           this.isAdmin = rol === 'ADMIN';
-          this.isLabEmployee = rol === 'EMPLOYEE';
+          this.isLabEmployee = rol === 'EMPLOYEE' || rol === 'LAB_EMPLOYEE';
           this.isPatient = rol === 'PATIENT';
         }
       },
