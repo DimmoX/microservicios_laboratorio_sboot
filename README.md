@@ -7,16 +7,23 @@ Sistema de gestión integral para laboratorios clínicos desarrollado con arquit
 ## 📋 Tabla de Contenidos
 
 - [Descripción del Proyecto](#-descripción-del-proyecto)
-- [Arquitectura de Microservicios](#-arquitectura-de-microservicios)
+- [Arquitectura de Microservicios](#️-arquitectura-de-microservicios)
+  - [MS_API_GATEWAY](#-ms_api_gateway-puerto-8080)
+  - [MS_GESTION_USERS](#-ms_gestion_users-puerto-8083)
+  - [MS_GESTION_LABS](#-ms_gestion_labs-puerto-8081)
+  - [MS_GESTION_RESULTADOS](#-ms_gestion_resultados-puerto-8082)
+- [Arquetipos de Microservicios](#-arquetipos-de-microservicios)
 - [Tecnologías y Dependencias](#-tecnologías-y-dependencias)
 - [Seguridad y Autenticación](#-seguridad-y-autenticación)
   - [Spring Boot Security - Implementación](#️-spring-boot-security---implementación-en-el-proyecto)
-- [Base de Datos](#-base-de-datos)
-- [Configuración de Conexión](#-configuración-de-conexión)
+- [Base de Datos](#️-base-de-datos)
+- [Configuración de Conexión](#️-configuración-de-conexión)
 - [Endpoints de la API](#-endpoints-de-la-api)
 - [Ejemplos de Uso](#-ejemplos-de-uso)
 - [Ejecución del Proyecto](#-ejecución-del-proyecto)
+- [📊 Análisis de Cobertura con SonarQube](#-análisis-de-cobertura-con-sonarqube)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
+- [Changelog](#-changelog-diciembre-2024)
 
 ---
 
@@ -30,7 +37,7 @@ El **Sistema de Gestión de Laboratorios Clínicos** permite administrar:
 - ✅ **Laboratorios**: Administración de múltiples laboratorios con ubicaciones
 - ✅ **Exámenes**: Catálogo de exámenes médicos disponibles
 - ✅ **Agendas**: Programación de citas para exámenes médicos
-- ✅ **Resultados**: Registro y consulta de resultados de exámenes
+- ✅ **Resultados**: Registro y consulta de resultados con filtrado por rol (PATIENT, LAB_EMPLOYEE, ADMIN)
 
 ### Características Principales
 
@@ -38,17 +45,20 @@ El **Sistema de Gestión de Laboratorios Clínicos** permite administrar:
 - 🛡️ **Spring Boot Security implementado** en todos los microservicios
 - 🔑 **BCrypt para hash de contraseñas** (costo 10)
 - 🚦 **Control de acceso basado en roles** (RBAC con @PreAuthorize)
-- 🌐 **Arquitectura de microservicios** escalable
+- 🎯 **Filtrado contextual por rol** en resultados (PATIENT ve solo sus datos)
+- 🌐 **Arquitectura de microservicios** escalable y desacoplada
+- 📦 **Arquetipos reutilizables** para desarrollo ágil
 - ☁️ **Base de datos en la nube** (Oracle Autonomous Database)
 - 🔄 **Operaciones en cascada** automáticas
 - 📝 **Validación de datos** completa
 - 🚀 **CORS habilitado** para aplicaciones frontend
+- 🐳 **Docker Compose** para orquestación de contenedores
 
 ---
 
 ## 🏗️ Arquitectura de Microservicios
 
-El sistema está compuesto por **3 microservicios independientes**:
+El sistema está compuesto por **4 microservicios independientes**:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -65,22 +75,23 @@ El sistema está compuesto por **3 microservicios independientes**:
 │  │  • Token blacklist (logout)                          │   │
 │  │  • CORS global                                       │   │
 │  │  • Spring Cloud Gateway (WebFlux)                    │   │
+│  │  • Propagación de headers (X-User-Role, etc)        │   │
 │  └──────────────────────────────────────────────────────┘   │
-└───────────┬──────────────────────────────┬──────────────────┘
-            │                              │
-            ▼                              ▼
-┌───────────────────────────┐  ┌──────────────────────────────┐
-│  👥 MS_GESTION_USERS      │  │  🧪 MS_GESTION_LABS          │
-│     (Puerto 8082)         │  │     (Puerto 8081)            │
-│                           │  │                              │
-│  • Usuarios               │  │  • Laboratorios              │
-│  • Pacientes              │  │  • Exámenes                  │
-│  • Empleados              │  │  • Agendas                   │
-│  • Autenticación          │  │  • Resultados                │
-│  • Registro completo      │  │  • Lab-Exams (relaciones)    │
-└───────────┬───────────────┘  └──────────────┬───────────────┘
-            │                                 │
-            └────────────┬────────────────────┘
+└───────┬────────────┬──────────────┬─────────────────┘
+        │            │              │
+        ▼            ▼              ▼
+┌───────────────┐ ┌────────────┐ ┌─────────────────┐
+│ 👥 MS_USERS   │ │ 🧪 MS_LABS │ │ 📊 MS_RESULTADOS │
+│   (8083)      │ │   (8081)   │ │    (8082)        │
+│               │ │            │ │                  │
+│ • Usuarios    │ │ • Labs     │ │ • Resultados     │
+│ • Pacientes   │ │ • Exámenes │ │ • Filtro por rol │
+│ • Empleados   │ │ • Agendas  │ │ • Búsqueda       │
+│ • Auth local  │ │ • Lab-Exams│ │ • Enriquecimiento│
+│ • Registro    │ │            │ │ • CRUD completo  │
+└───────┬───────┘ └──────┬─────┘ └────────┬────────┘
+        │                │                 │
+        └────────────────┴─────────────────┘
                          ▼
          ┌───────────────────────────────────┐
          │  🗄️ ORACLE AUTONOMOUS DATABASE    │
@@ -91,6 +102,12 @@ El sistema está compuesto por **3 microservicios independientes**:
          │  • Wallet de conexión segura      │
          └───────────────────────────────────┘
 ```
+
+**Nota:** MS_GESTION_LABS ya no maneja resultados. Se creó un microservicio dedicado (MS_GESTION_RESULTADOS) para mejor separación de responsabilidades.
+         └───────────────────────────────────┘
+```
+
+**Nota:** MS_GESTION_LABS ya no maneja resultados. Se creó un microservicio dedicado (MS_GESTION_RESULTADOS) para mejor separación de responsabilidades.
 
 ### 🌐 MS_API_GATEWAY (Puerto 8080)
 
@@ -122,6 +139,240 @@ El sistema está compuesto por **3 microservicios independientes**:
 7. Gateway → Enruta a microservicio correspondiente
 8. Microservicio → Confía en Gateway, procesa sin re-validar
 ```
+
+---
+
+### 👥 MS_GESTION_USERS (Puerto 8083)
+
+**Función Principal:** Gestión de usuarios, pacientes y empleados del sistema.
+
+**Responsabilidades:**
+- ✅ **Autenticación local**: Genera JWT tras validar credenciales
+- ✅ **Gestión de usuarios**: CRUD de usuarios (solo lectura pública)
+- ✅ **Registro completo**: Creación de pacientes/empleados con usuario automático
+- ✅ **Gestión de pacientes**: CRUD completo con cascadas
+- ✅ **Gestión de empleados**: CRUD completo con cascadas
+- ✅ **Hash de contraseñas**: BCrypt con costo 10
+- ✅ **Roles**: ADMIN, LAB_EMPLOYEE, PATIENT
+
+**Tecnologías:**
+- Spring Boot 3.5.7
+- Spring Data JPA
+- Spring Security
+- BCryptPasswordEncoder
+- Oracle JDBC Driver
+
+---
+
+### 🧪 MS_GESTION_LABS (Puerto 8081)
+
+**Función Principal:** Gestión de laboratorios, exámenes y agendas.
+
+**Responsabilidades:**
+- ✅ **Laboratorios**: CRUD completo de laboratorios
+- ✅ **Exámenes**: Catálogo de exámenes médicos
+- ✅ **Lab-Exams**: Relación entre laboratorios y exámenes (precios)
+- ✅ **Agendas**: Programación de citas médicas
+- ✅ **Rutas públicas**: Listado de laboratorios sin autenticación
+
+**Tecnologías:**
+- Spring Boot 3.5.7
+- Spring Data JPA
+- Spring Security
+- Oracle JDBC Driver
+
+**Nota:** Los resultados de exámenes fueron migrados a MS_GESTION_RESULTADOS para mejor escalabilidad.
+
+---
+
+### 📊 MS_GESTION_RESULTADOS (Puerto 8082)
+
+**Función Principal:** Gestión exclusiva de resultados de exámenes con filtrado por rol.
+
+**Responsabilidades:**
+- ✅ **CRUD completo de resultados**: Crear, leer, actualizar y eliminar resultados
+- ✅ **Filtrado por rol contextual**:
+  - **PATIENT**: Solo ve sus propios resultados (filtro por `pacienteId`)
+  - **LAB_EMPLOYEE**: Ve todos los resultados
+  - **ADMIN**: Ve todos los resultados
+- ✅ **Búsqueda avanzada**:
+  - Por paciente específico
+  - Por laboratorio
+  - Por examen
+  - Por estado (PENDIENTE, COMPLETADO, CANCELADO)
+- ✅ **Enriquecimiento de datos**: Llama a MS_USERS y MS_LABS para obtener información adicional
+- ✅ **Validación de permisos**: Usa headers del Gateway (`X-User-Role`, `X-Patient-Id`)
+
+**Tecnologías:**
+- Spring Boot 3.5.7
+- Spring Data JPA
+- Spring Security
+- RestTemplate para comunicación entre microservicios
+- Oracle JDBC Driver
+
+**Endpoints principales:**
+- `GET /resultados` - Listar resultados (filtrado automático por rol)
+- `GET /resultados/{id}` - Obtener resultado específico
+- `GET /resultados/paciente/{pacienteId}` - Resultados de un paciente
+- `GET /resultados/laboratorio/{labId}` - Resultados de un laboratorio
+- `GET /resultados/examen/{examenId}` - Resultados de un tipo de examen
+- `POST /resultados` - Crear nuevo resultado
+- `PUT /resultados/{id}` - Actualizar resultado
+- `DELETE /resultados/{id}` - Eliminar resultado
+
+**Ejemplo de filtrado por rol:**
+```java
+@GetMapping
+@PreAuthorize("hasAnyRole('PATIENT', 'LAB_EMPLOYEE', 'ADMIN')")
+public ResponseEntity<Map<String, Object>> getAllResults(
+        @RequestHeader(value = "X-User-Role", required = false) String userRole,
+        @RequestHeader(value = "X-Patient-Id", required = false) String patientIdStr) {
+    
+    if ("PATIENT".equals(userRole) && patientIdStr != null) {
+        // Paciente solo ve sus resultados
+        Long patientId = Long.parseLong(patientIdStr);
+        return service.findByPacienteId(patientId);
+    } else {
+        // LAB_EMPLOYEE y ADMIN ven todos
+        return service.findAll();
+    }
+}
+```
+
+---
+
+## 📦 Arquetipos de Microservicios
+
+El proyecto incluye **arquetipos reutilizables** en la carpeta `arquetipo_backend/` para facilitar el desarrollo de nuevos microservicios siguiendo el patrón **Layered Architecture**.
+
+### 🎯 Estructura de Arquetipos
+
+```
+arquetipo_backend/
+├── ms_api_gateway/
+├── ms_gestion_labs/
+├── ms_gestion_resultados/
+└── ms_gestion_users/
+```
+
+Cada arquetipo incluye:
+- ✅ **ARQUETIPO_BACKEND.md**: Documentación técnica completa
+- ✅ **README.md**: Guía rápida de uso
+- ✅ **GUIA_IMPLEMENTACION.md**: Implementación paso a paso (algunos arquetipos)
+- ✅ **pom.xml**: Dependencias Maven configuradas
+- ✅ **Dockerfile**: Imagen Docker optimizada
+- ✅ **src/**: Código fuente completo
+- ✅ **.env.example**: Variables de entorno
+
+### 📋 Arquetipos Disponibles
+
+#### 1. Arquetipo MS_GESTION_USERS
+
+**Características:**
+- Autenticación con JWT local
+- Registro de pacientes y empleados
+- CRUD de usuarios con BCrypt
+- Integración con Oracle Autonomous Database
+- Spring Security con `@PreAuthorize`
+
+**Uso:**
+```bash
+cp -r arquetipo_backend/ms_gestion_users nuevo_microservicio
+cd nuevo_microservicio
+# Actualizar nombres de paquetes, base de datos, puerto
+mvn clean install
+```
+
+#### 2. Arquetipo MS_GESTION_LABS
+
+**Características:**
+- CRUD de laboratorios, exámenes, agendas
+- Rutas públicas y privadas
+- Relaciones complejas (Lab-Exams)
+- DTOs para transferencia de datos
+
+#### 3. Arquetipo MS_GESTION_RESULTADOS
+
+**Características:**
+- **Filtrado contextual por rol** (PATIENT, LAB_EMPLOYEE, ADMIN)
+- Búsqueda avanzada con múltiples criterios
+- Enriquecimiento de datos desde otros microservicios
+- RestTemplate configurado para comunicación HTTP
+- Headers del Gateway (`X-User-Role`, `X-Patient-Id`, etc.)
+- Validación de permisos con `@PreAuthorize`
+
+**Endpoints documentados:**
+```
+GET    /resultados                      # Filtrado automático por rol
+GET    /resultados/{id}                 # Resultado específico
+GET    /resultados/paciente/{id}        # Por paciente
+GET    /resultados/laboratorio/{id}     # Por laboratorio
+GET    /resultados/examen/{id}          # Por examen
+POST   /resultados                      # Crear resultado
+PUT    /resultados/{id}                 # Actualizar resultado
+DELETE /resultados/{id}                 # Eliminar resultado
+```
+
+**Ejemplo de uso del arquetipo:**
+```bash
+# Copiar arquetipo
+cp -r arquetipo_backend/ms_gestion_resultados mi_nuevo_servicio
+
+# Configurar variables de entorno
+cp mi_nuevo_servicio/.env.example mi_nuevo_servicio/.env
+
+# Actualizar application.properties
+# - Cambiar puerto
+# - Configurar Oracle Wallet
+# - Actualizar nombre del servicio
+
+# Compilar y ejecutar
+cd mi_nuevo_servicio
+mvn clean install
+mvn spring-boot:run
+```
+
+#### 4. Arquetipo MS_API_GATEWAY
+
+**Características:**
+- Spring Cloud Gateway configurado
+- JwtGlobalFilter para validación centralizada
+- Token blacklist service
+- CORS global
+- Enrutamiento a múltiples microservicios
+
+### 🔧 Patrón Layered Architecture
+
+Todos los arquetipos siguen la **Arquitectura en Capas**:
+
+```
+src/main/java/com/nombre_microservicio/
+├── config/                    # Configuración (Security, CORS, etc)
+│   ├── SecurityConfig.java
+│   └── RestClientConfig.java
+├── controller/                # Capa de presentación (REST API)
+│   └── EntidadController.java
+├── service/                   # Capa de lógica de negocio
+│   ├── EntidadService.java
+│   └── EntidadServiceImpl.java
+├── repository/                # Capa de acceso a datos (JPA)
+│   └── EntidadRepository.java
+├── model/                     # Entidades JPA
+│   └── EntidadModel.java
+├── dto/                       # Data Transfer Objects
+│   ├── EntidadRequest.java
+│   └── EntidadResponse.java
+└── exceptionHandler/          # Manejo global de errores
+    └── GlobalExceptionHandler.java
+```
+
+### 📚 Ventajas de los Arquetipos
+
+1. **Desarrollo ágil**: Nuevo microservicio en minutos
+2. **Consistencia**: Todos siguen el mismo patrón arquitectónico
+3. **Mejores prácticas**: Security, validación, DTOs incluidos
+4. **Documentación**: Cada arquetipo está documentado
+5. **Reutilización**: Código probado y funcional
 
 ---
 
@@ -661,10 +912,10 @@ El proyecto utiliza **Oracle Wallet** para conexión segura a la base de datos e
 
 ### Configuración de `application.properties`
 
-#### MS_GESTION_USERS (8082)
+#### MS_GESTION_USERS (8083)
 ```properties
 # Puerto
-server.port=8082
+server.port=8083
 
 # Base de datos Oracle
 spring.datasource.url=jdbc:oracle:thin:@databasefullstack3_high?TNS_ADMIN=/ruta/al/wallet/Wallet_databaseFullStack3
@@ -706,6 +957,30 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.OracleDialect
 logging.level.com.gestion_labs=INFO
 ```
 
+#### MS_GESTION_RESULTADOS (8082)
+```properties
+# Puerto
+server.port=8082
+
+# Base de datos Oracle (misma configuración que otros microservicios)
+spring.datasource.url=jdbc:oracle:thin:@databasefullstack3_high?TNS_ADMIN=/ruta/al/wallet/Wallet_databaseFullStack3
+spring.datasource.username=TU_USUARIO
+spring.datasource.password=TU_PASSWORD
+spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+# JPA/Hibernate
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.OracleDialect
+
+# URLs de otros microservicios (para enriquecimiento)
+app.services.users=http://localhost:8083
+app.services.labs=http://localhost:8081
+
+# Logging
+logging.level.com.gestion_resultados=INFO
+```
+
 #### MS_API_GATEWAY (8080)
 ```properties
 # Puerto
@@ -716,8 +991,9 @@ jwt.secret=tu_secreto_super_seguro_de_minimo_512_bits
 jwt.expiration=7200000
 
 # Servicios (URLs de los microservicios)
-app.services.users=http://localhost:8082
+app.services.users=http://localhost:8083
 app.services.labs=http://localhost:8081
+app.services.resultados=http://localhost:8082
 
 # CORS
 spring.cloud.gateway.globalcors.corsConfigurations.[/**].allowedOrigins=*
@@ -823,15 +1099,25 @@ logging.pattern.console=%d{HH:mm:ss} %-5level | %msg%n
 
 ---
 
-#### 📊 Resultados
+#### 📊 Resultados (MS_GESTION_RESULTADOS)
+
+**Nota:** Resultados fueron migrados de MS_LABS a un microservicio dedicado para mejor escalabilidad y filtrado por rol.
 
 | Método | Endpoint | Descripción | Rol Requerido |
 |--------|----------|-------------|---------------|
-| GET | `/results` | Listar resultados | Cualquier autenticado |
-| GET | `/results/{id}` | Ver resultado | Cualquier autenticado |
-| POST | `/results` | Crear resultado | ADMIN, EMPLEADO |
-| PUT | `/results/{id}` | Actualizar resultado | ADMIN, EMPLEADO |
-| DELETE | `/results/{id}` | Eliminar resultado | ADMIN |
+| GET | `/resultados` | Listar resultados (filtrado automático) | PATIENT, LAB_EMPLOYEE, ADMIN |
+| GET | `/resultados/{id}` | Ver resultado específico | PATIENT, LAB_EMPLOYEE, ADMIN |
+| GET | `/resultados/paciente/{pacienteId}` | Resultados de un paciente | LAB_EMPLOYEE, ADMIN |
+| GET | `/resultados/laboratorio/{labId}` | Resultados de un laboratorio | LAB_EMPLOYEE, ADMIN |
+| GET | `/resultados/examen/{examenId}` | Resultados de un tipo de examen | LAB_EMPLOYEE, ADMIN |
+| POST | `/resultados` | Crear nuevo resultado | LAB_EMPLOYEE, ADMIN |
+| PUT | `/resultados/{id}` | Actualizar resultado | LAB_EMPLOYEE, ADMIN |
+| DELETE | `/resultados/{id}` | Eliminar resultado | ADMIN |
+
+**Filtrado contextual:**
+- **PATIENT**: Solo ve sus propios resultados (automático por `pacienteId`)
+- **LAB_EMPLOYEE**: Ve todos los resultados
+- **ADMIN**: Ve todos los resultados
 
 ---
 
@@ -1144,7 +1430,7 @@ mvn clean install -DskipTests
 **Opción A: Usando Maven (Desarrollo)**
 
 ```bash
-# Terminal 1 - MS Gestión Users (8082)
+# Terminal 1 - MS Gestión Users (8083)
 cd ms_gestion_users
 mvn spring-boot:run
 
@@ -1152,7 +1438,11 @@ mvn spring-boot:run
 cd ms_gestion_labs
 mvn spring-boot:run
 
-# Terminal 3 - API Gateway (8080)
+# Terminal 3 - MS Gestión Resultados (8082)
+cd ms_gestion_resultados
+mvn spring-boot:run
+
+# Terminal 4 - API Gateway (8080)
 cd ms_api_gateway
 mvn spring-boot:run
 ```
@@ -1160,14 +1450,30 @@ mvn spring-boot:run
 **Opción B: Usando JAR (Producción)**
 
 ```bash
-# Terminal 1 - MS Gestión Users (8082)
+# Terminal 1 - MS Gestión Users (8083)
 java -jar ms_gestion_users/target/ms_gestion_users-0.0.1-SNAPSHOT.jar
 
 # Terminal 2 - MS Gestión Labs (8081)
 java -jar ms_gestion_labs/target/ms_gestion_labs-0.0.1-SNAPSHOT.jar
 
-# Terminal 3 - API Gateway (8080)
+# Terminal 3 - MS Gestión Resultados (8082)
+java -jar ms_gestion_resultados/target/ms_gestion_resultados-0.0.1-SNAPSHOT.jar
+
+# Terminal 4 - API Gateway (8080)
 java -jar ms_api_gateway/target/ms_api_gateway-0.0.1-SNAPSHOT.jar
+```
+
+**Opción C: Usando Docker Compose (Recomendado)**
+
+```bash
+# Iniciar todos los servicios
+docker-compose up -d
+
+# Ver logs
+docker-compose logs -f
+
+# Detener servicios
+docker-compose down
 ```
 
 ### Paso 6: Verificar Ejecución
@@ -1176,10 +1482,13 @@ java -jar ms_api_gateway/target/ms_api_gateway-0.0.1-SNAPSHOT.jar
 
 ```bash
 # MS Gestión Users
-curl http://localhost:8082/actuator/health
+curl http://localhost:8083/actuator/health
 
 # MS Gestión Labs
 curl http://localhost:8081/actuator/health
+
+# MS Gestión Resultados
+curl http://localhost:8082/actuator/health
 
 # API Gateway
 curl http://localhost:8080/actuator/health
@@ -1212,7 +1521,8 @@ microservicios_laboratorio_sboot/
 │   │   ├── controller/
 │   │   │   └── AuthController.java          # Login y Logout
 │   │   ├── filter/
-│   │   │   └── JwtGlobalFilter.java         # Validación JWT centralizada
+│   │   │   ├── JwtGlobalFilter.java         # Validación JWT centralizada
+│   │   │   └── AddUserHeadersFilter.java    # Propagación de headers
 │   │   ├── service/
 │   │   │   ├── TokenBlacklistService.java   # Gestión de blacklist
 │   │   │   └── JwtService.java              # Utilidades JWT
@@ -1268,25 +1578,22 @@ microservicios_laboratorio_sboot/
 │   │   │   ├── LaboratorioController.java   # CRUD laboratorios
 │   │   │   ├── ExamenController.java        # CRUD exámenes
 │   │   │   ├── AgendaController.java        # CRUD agendas
-│   │   │   ├── ResultadoController.java     # CRUD resultados
 │   │   │   └── LabExamController.java       # CRUD relaciones lab-exam
+│   │   │   # Nota: ResultadoController eliminado → migrado a MS_RESULTADOS
 │   │   ├── service/
 │   │   │   ├── LaboratorioService.java      # Lógica laboratorios
 │   │   │   ├── ExamenService.java           # Lógica exámenes
 │   │   │   ├── AgendaService.java           # Lógica agendas
-│   │   │   ├── ResultadoService.java        # Lógica resultados
 │   │   │   └── LabExamService.java          # Lógica relaciones
 │   │   ├── repository/
 │   │   │   ├── LaboratorioRepository.java   # JPA Repository
 │   │   │   ├── ExamenRepository.java        # JPA Repository
 │   │   │   ├── AgendaRepository.java        # JPA Repository
-│   │   │   ├── ResultadoRepository.java     # JPA Repository
 │   │   │   └── LabExamRepository.java       # JPA Repository
 │   │   ├── model/
 │   │   │   ├── LaboratorioModel.java        # Entidad JPA
 │   │   │   ├── ExamenModel.java             # Entidad JPA
 │   │   │   ├── AgendaExamenModel.java       # Entidad JPA
-│   │   │   ├── ResultadoExamenModel.java    # Entidad JPA
 │   │   │   ├── LabExamModel.java            # Entidad JPA
 │   │   │   ├── ContactoModel.java           # Entidad JPA
 │   │   │   └── DireccionModel.java          # Entidad JPA
@@ -1294,11 +1601,82 @@ microservicios_laboratorio_sboot/
 │   │       ├── LaboratorioDTO.java          # DTO laboratorio
 │   │       ├── ExamenDTO.java               # DTO examen
 │   │       ├── AgendaExamenDTO.java         # DTO agenda
-│   │       └── ResultadoExamenDTO.java      # DTO resultado
+│   │       └── LabExamDTO.java              # DTO relación lab-exam
 │   ├── src/main/resources/
 │   │   ├── application.properties           # Configuración + Oracle
 │   │   └── ojdbc.properties                 # Propiedades Oracle
 │   └── pom.xml                              # Dependencias Maven
+│
+├── ms_gestion_resultados/             # Microservicio Resultados (Puerto 8082)
+│   ├── src/main/java/com/gestion_resultados/
+│   │   ├── config/
+│   │   │   ├── SecurityConfig.java          # permitAll() - Confía en Gateway
+│   │   │   └── RestClientConfig.java        # RestTemplate configurado
+│   │   ├── controller/
+│   │   │   └── ResultadoController.java     # CRUD con filtrado por rol
+│   │   ├── service/
+│   │   │   ├── ResultadoService.java        # Lógica de resultados
+│   │   │   ├── ResultadoServiceImpl.java    # Implementación
+│   │   │   └── EnrichmentService.java       # Enriquecimiento de datos
+│   │   ├── repository/
+│   │   │   └── ResultadoExamenRepository.java # JPA Repository
+│   │   ├── model/
+│   │   │   └── ResultadoExamenModel.java    # Entidad JPA
+│   │   └── dto/
+│   │       ├── ResultadoRequest.java        # DTO request
+│   │       └── ResultadoResponse.java       # DTO response
+│   ├── src/main/resources/
+│   │   ├── application.properties           # Configuración + Oracle
+│   │   └── ojdbc.properties                 # Propiedades Oracle
+│   └── pom.xml                              # Dependencias Maven
+│
+├── arquetipo_backend/                 # 📦 Arquetipos Reutilizables
+│   ├── ms_api_gateway/
+│   │   ├── ARQUETIPO_BACKEND.md
+│   │   ├── README.md
+│   │   ├── pom.xml
+│   │   ├── Dockerfile
+│   │   └── src/
+│   ├── ms_gestion_users/
+│   │   ├── ARQUETIPO_BACKEND.md
+│   │   ├── README.md
+│   │   ├── GUIA_IMPLEMENTACION.md
+│   │   ├── .env.example
+│   │   ├── pom.xml
+│   │   ├── Dockerfile
+│   │   └── src/
+│   ├── ms_gestion_labs/
+│   │   ├── ARQUETIPO_BACKEND.md
+│   │   ├── README.md
+│   │   ├── pom.xml
+│   │   ├── Dockerfile
+│   │   └── src/
+│   └── ms_gestion_resultados/         # 🆕 NUEVO
+│       ├── ARQUETIPO_BACKEND.md
+│       ├── README.md
+│       ├── GUIA_IMPLEMENTACION.md
+│       ├── .env.example
+│       ├── pom.xml
+│       ├── Dockerfile
+│       └── src/
+│
+├── arquetipo_frontend/                # Arquetipo Angular
+│   ├── ARQUETIPO_FRONTEND.md
+│   ├── README.md
+│   └── src/
+│
+├── frontend_gestion_labs/             # Frontend Angular (Puerto 4200)
+│   ├── src/app/
+│   │   ├── components/
+│   │   ├── services/
+│   │   ├── guards/
+│   │   ├── interceptors/
+│   │   └── models/
+│   └── angular.json
+│
+├── base_de_datos/                     # Scripts SQL
+│   ├── creacion_tablas.sql
+│   └── LIMPIAR_BD_COMPLETO.sql
 │
 ├── wallet/                            # Oracle Wallet (OCI)
 │   └── Wallet_databaseFullStack3/
@@ -1307,10 +1685,17 @@ microservicios_laboratorio_sboot/
 │       ├── tnsnames.ora
 │       └── ...
 │
-├── creacion_tablas_sumativa1_fs3.sql # Script SQL de creación de BD
-├── crear_usuario_admin.sql           # Script de usuario admin
-├── LIMPIAR_BD_COMPLETO.sql          # Script para limpiar BD
-└── README.md                         # Este archivo
+├── postman/                           # Colecciones Postman
+│   ├── collection_sumativa2.json
+│   └── environment_FS3.postman_environment.json
+│
+├── docker-compose.yml                 # Orquestación Docker
+├── Dockerfile                         # Imagen base
+├── iniciar-app.sh                     # Script de inicio
+├── detener-app.sh                     # Script de detención
+├── limpiar-rebuild.sh                 # Script de limpieza
+├── README.md                          # Este archivo
+└── README_DOCKER.md                   # Documentación Docker
 ```
 
 ---
@@ -1369,3 +1754,251 @@ logging.level.com.gestion_labs=INFO
 **¿Necesitas ayuda?** Revisa los logs de cada microservicio para diagnóstico de errores.
 
 **Punto de entrada único:** `http://localhost:8080` (API Gateway)
+
+---
+
+## � Análisis de Cobertura con SonarQube
+
+### 🎯 Objetivo: ≥80% de Cobertura
+
+El proyecto incluye análisis de calidad de código y cobertura de tests utilizando:
+
+- **Backend:** JaCoCo para microservicios Spring Boot
+- **Frontend:** Karma/Jasmine para Angular
+- **Análisis:** SonarQube Community Edition
+
+### 🚀 Inicio Rápido
+
+```bash
+# 1. Iniciar aplicación con SonarQube incluido
+./iniciar-app.sh
+
+# 2. Esperar a que SonarQube esté listo (2-3 minutos)
+# SonarQube estará en: http://localhost:9000
+
+# 3. Ejecutar análisis de cobertura
+./analisis-sonarqube.sh
+```
+
+### 📊 Acceso a Reportes
+
+- **SonarQube Dashboard:** http://localhost:9000
+  - Usuario: `admin`
+  - Contraseña: `admin`
+
+- **Reportes Locales JaCoCo:**
+  - `ms_gestion_users/target/site/jacoco/index.html`
+  - `ms_gestion_labs/target/site/jacoco/index.html`
+  - `ms_gestion_resultados/target/site/jacoco/index.html`
+  - `ms_api_gateway/target/site/jacoco/index.html`
+
+- **Reporte Angular:**
+  - `frontend_gestion_labs/coverage/frontend-gestion-labs/index.html`
+
+### 📚 Documentación Completa
+
+Para instrucciones detalladas sobre:
+- Configuración de SonarQube
+- Creación de tests unitarios
+- Interpretación de métricas
+- Comandos avanzados
+- Solución de problemas
+
+**Ver:** [README_SONARQUBE.md](README_SONARQUBE.md)
+
+### 🧪 Scripts Disponibles
+
+```bash
+# Análisis completo con verificaciones
+./analisis-sonarqube.sh
+```
+
+### 📈 Métricas Configuradas
+
+- **Líneas de código:** ≥ 80%
+- **Ramas:** ≥ 80%
+- **Funciones:** ≥ 80%
+- **Sentencias:** ≥ 80%
+
+El build fallará si la cobertura está por debajo del objetivo.
+
+---
+
+## 📝 Changelog (Diciembre 2024)
+
+### 🆕 Versión 3.1 - Integración SonarQube (21 Diciembre 2024)
+
+#### ✨ Nuevas Funcionalidades
+
+- 🔍 **SonarQube Community Edition integrado**
+  - Contenedor Docker con PostgreSQL incluido
+  - Puerto expuesto: 9000
+  - Configuración lista para usar
+
+- 📊 **JaCoCo para Backend**
+  - Plugin configurado en todos los microservicios
+  - Generación automática de reportes XML/HTML
+  - Verificación de cobertura mínima (80%)
+  - Integración con SonarQube Maven Plugin
+
+- 🧪 **Karma/Jasmine para Frontend**
+  - Configuración de cobertura en Angular
+  - Generación de reportes LCOV
+  - Chrome Headless para CI/CD
+  - sonar-scanner para JavaScript/TypeScript
+
+- 🚀 **Scripts de Automatización**
+  - `analisis-sonarqube.sh`: Análisis completo con verificaciones
+  - Permisos de ejecución configurados
+
+- 📚 **Documentación**
+  - README_SONARQUBE.md con guía completa
+  - Ejemplos de tests unitarios (Backend y Frontend)
+  - Interpretación de métricas
+  - Solución de problemas
+  - Mejores prácticas
+
+#### 🔧 Configuraciones Técnicas
+
+- **Backend (pom.xml):**
+  - jacoco-maven-plugin v0.8.12
+  - sonar-maven-plugin v4.0.0.4121
+  - Propiedades de SonarQube por microservicio
+  - Exclusiones de cobertura configurables
+
+- **Frontend:**
+  - karma.conf.js con reportes LCOV
+  - sonar-project.properties
+  - Scripts npm: `test:coverage`, `sonar`
+  - sonarqube-scanner v3.3.0
+
+- **Docker Compose:**
+  - Servicio SonarQube con imagen official
+  - PostgreSQL 15 Alpine para persistencia
+  - Volúmenes para datos, extensiones y logs
+  - Red compartida con microservicios
+
+#### 📦 Archivos Nuevos
+
+- `.gitignore`: Exclusiones para coverage, node_modules, target
+- `README_SONARQUBE.md`: Documentación completa de SonarQube
+- `analisis-sonarqube.sh`: Script principal de análisis
+- `frontend_gestion_labs/karma.conf.js`: Configuración de tests
+- `frontend_gestion_labs/sonar-project.properties`: Config SonarQube
+
+#### 🎯 Objetivos de Calidad
+
+- Cobertura mínima: 80% en todos los módulos
+- Reportes automáticos en cada análisis
+- Integración con CI/CD preparada
+- Métricas visibles en SonarQube Dashboard
+
+---
+
+### 🆕 Versión 3.0 - Semana 8 (14-17 Diciembre 2024)
+
+#### ✨ Nuevas Funcionalidades
+
+**Sábado 14 - Domingo 15:**
+- 🎯 **Creación de MS_GESTION_RESULTADOS**: Microservicio dedicado para gestión de resultados
+  - Separación de responsabilidades desde MS_GESTION_LABS
+  - Puerto asignado: 8082
+  - Implementación de filtrado por rol (PATIENT, LAB_EMPLOYEE, ADMIN)
+  - Búsqueda avanzada por paciente, laboratorio, examen
+  - RestTemplate para enriquecimiento de datos
+
+**Lunes 16:**
+- 🔧 **Configuración de API Gateway para MS_RESULTADOS**
+  - Enrutamiento `/resultados/**` → `http://resultados-service:8082`
+  - Propagación de headers: `X-User-Role`, `X-Patient-Id`, `X-Employee-Id`, `X-User-Id`
+  - Manejo de peticiones OPTIONS para CORS preflight
+- 🐳 **Docker Compose actualizado**
+  - Agregado servicio `resultados-service` con puerto 8082
+  - Configuración de red compartida entre microservicios
+  - Variables de entorno para MS_RESULTADOS
+- 🔀 **Eliminación de endpoints de resultados de MS_LABS**
+  - Migración completa a MS_GESTION_RESULTADOS
+  - Actualización de dependencias entre servicios
+
+**Martes 17:**
+- 📦 **Creación de Arquetipo MS_GESTION_RESULTADOS**
+  - Estructura completa del arquetipo en `arquetipo_backend/ms_gestion_resultados/`
+  - Código fuente reutilizable con todas las capas (Controller, Service, Repository, Model, DTO)
+  - Configuración lista para Oracle Autonomous Database
+  - Dockerfile para despliegue en contenedores
+- 📚 **Documentación del Arquetipo**
+  - ARQUETIPO_BACKEND.md con especificación técnica completa
+  - README.md con guía rápida de endpoints y configuración
+  - GUIA_IMPLEMENTACION.md con implementación paso a paso
+  - .env.example con variables de entorno necesarias
+- 🔐 **Mejoras en Seguridad**
+  - Filtro global mejorado para extracción de claims del JWT
+  - Propagación automática de userId, pacienteId, empleadoId, role como headers HTTP
+  - Validación de roles con `@PreAuthorize` en todos los endpoints
+
+#### 🔄 Cambios Estructurales
+
+- 📊 **Arquitectura actualizada a 4 microservicios**:
+  1. MS_API_GATEWAY (8080)
+  2. MS_GESTION_USERS (8083) - Cambio de puerto desde 8082
+  3. MS_GESTION_LABS (8081)
+  4. MS_GESTION_RESULTADOS (8082) - **NUEVO**
+
+- 🗂️ **Reorganización de responsabilidades**:
+  - MS_LABS: Laboratorios, exámenes, agendas, lab-exams
+  - MS_RESULTADOS: Resultados de exámenes exclusivamente
+  - MS_USERS: Usuarios, pacientes, empleados, autenticación
+
+#### 🐛 Correcciones
+
+- ✅ Eliminación de console.log innecesarios en frontend
+- ✅ Corrección de CORS duplicado entre Gateway y microservicios
+- ✅ Ajuste de rutas en frontend para consumir desde MS_RESULTADOS
+- ✅ Cambio de datos mock a datos reales desde endpoints
+- ✅ Mejora en nomenclatura de métodos en servicios
+- ✅ Deshabilitar caché en configuraciones para desarrollo
+
+#### 📦 Arquetipos Completados
+
+1. ✅ **ms_api_gateway**: Gateway con validación JWT, blacklist, CORS
+2. ✅ **ms_gestion_users**: Autenticación, usuarios, pacientes, empleados
+3. ✅ **ms_gestion_labs**: Laboratorios, exámenes, agendas, relaciones
+4. ✅ **ms_gestion_resultados**: Resultados con filtrado por rol, búsqueda avanzada
+
+#### 🚀 Mejoras de Rendimiento
+
+- ⚡ Desacoplamiento de MS_LABS para mejor escalabilidad
+- ⚡ Comunicación entre microservicios mediante RestTemplate
+- ⚡ Enriquecimiento de datos bajo demanda (lazy loading)
+
+#### 📖 Documentación
+
+- 📝 README.md actualizado con:
+  - Arquitectura de 4 microservicios
+  - Sección completa de Arquetipos
+  - Endpoints de MS_GESTION_RESULTADOS
+  - Filtrado contextual por rol
+  - Changelog con cambios recientes
+- 📝 Documentación de arquetipos con ejemplos de uso
+- 📝 Guías de implementación paso a paso
+
+---
+
+### 🔜 Próximas Mejoras Planificadas
+
+- [ ] Implementar Circuit Breaker (Resilience4j) para comunicación entre microservicios
+- [ ] Migrar Token Blacklist a Redis para persistencia
+- [ ] Implementar Service Discovery (Eureka)
+- [ ] Agregar métricas con Actuator y Prometheus
+- [ ] Implementar logging centralizado con ELK Stack
+- [x] ✅ **Tests unitarios con cobertura ≥80% (JaCoCo + Karma)**
+- [x] ✅ **Análisis de calidad con SonarQube**
+- [ ] CI/CD con GitHub Actions
+- [ ] Implementar más tests de integración
+- [ ] Agregar mutation testing (PIT)
+
+---
+
+**Última actualización:** 21 de Diciembre de 2024  
+**Versión:** 3.1.0  
+**Branch:** S9/EFT
