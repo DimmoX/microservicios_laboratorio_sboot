@@ -144,9 +144,9 @@ CREATE TABLE agenda_examen (
   lab_id       NUMBER NOT NULL,
   examen_id    NUMBER NOT NULL,
   empleado_id  NUMBER,
-  fecha_hora   TIMESTAMP WITH TIME ZONE NOT NULL,
+  fecha_hora   TIMESTAMP(6) NOT NULL,
   estado       VARCHAR2(20) DEFAULT 'PROGRAMADA' NOT NULL,
-  creado_en    TIMESTAMP DEFAULT SYSTIMESTAMP,
+  creado_en    TIMESTAMP(6) DEFAULT SYSTIMESTAMP,
   CONSTRAINT fk_agenda_paciente FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE CASCADE,
   CONSTRAINT fk_agenda_lab      FOREIGN KEY (lab_id)      REFERENCES laboratorios(id),
   CONSTRAINT fk_agenda_examen   FOREIGN KEY (examen_id)   REFERENCES examenes(id),
@@ -222,7 +222,7 @@ INSERT INTO contactos (fono1, fono2, email) VALUES ('+56993000006', '+5699301000
 -- Empleados
 INSERT INTO contactos (fono1, fono2, email) VALUES ('+56993000007', NULL,           'felipe.munoz@laboratorioandino.cl');
 INSERT INTO contactos (fono1, fono2, email) VALUES ('+56993000008', NULL,           'constanza.araya@clinicabiosalud.cl');
-INSERT INTO contactos (fono1, fono2, email) VALUES ('+56993000009', '+56993010009', 'matias.carrasco@centrodiagnosticopacifico.cl');
+INSERT INTO contactos (fono1, fono2, email) VALUES ('+56993000009', '+56993010009', 'matias.carrasco@cdpacifico.cl');
 
 ------------------------------------------------------------
 -- 2) DIRECCIONES (9)
@@ -335,7 +335,7 @@ VALUES (
   'Matías', 'Antonio', 'Carrasco', 'Silva', '16789012-7',
   'Recepcionista',
   (SELECT id FROM direcciones WHERE ciudad = 'Concepción' AND calle = 'Calle O''Higgins' AND numero = 2020),
-  (SELECT id FROM contactos   WHERE email = 'matias.carrasco@centrodiagnosticopacifico.cl')
+  (SELECT id FROM contactos   WHERE email = 'matias.carrasco@cdpacifico.cl')
 );
 
 ------------------------------------------------------------
@@ -452,7 +452,7 @@ INSERT INTO users (username, password, role, empleado_id)
 VALUES (
   'felipe.munoz@laboratorioandino.cl',
   '$2a$10$jOX1cjWTiVqGXUtD/0AQ4.c8jYCKLwpFQ9iNHCmzWec3I7jte4YDS',
-  'LAB_EMPLOYEE',
+  'EMPLOYEE',
   (SELECT e.id FROM empleados e JOIN contactos c ON e.contacto_id = c.id WHERE c.email = 'felipe.munoz@laboratorioandino.cl')
 );
 
@@ -460,16 +460,16 @@ INSERT INTO users (username, password, role, empleado_id)
 VALUES (
   'constanza.araya@clinicabiosalud.cl',
   '$2a$10$jOX1cjWTiVqGXUtD/0AQ4.c8jYCKLwpFQ9iNHCmzWec3I7jte4YDS',
-  'LAB_EMPLOYEE',
+  'EMPLOYEE',
   (SELECT e.id FROM empleados e JOIN contactos c ON e.contacto_id = c.id WHERE c.email = 'constanza.araya@clinicabiosalud.cl')
 );
 
 INSERT INTO users (username, password, role, empleado_id)
 VALUES (
-  'matias.carrasco@centrodiagnosticopacifico.cl',
+  'matias.carrasco@cdpacifico.cl',
   '$2a$10$jOX1cjWTiVqGXUtD/0AQ4.c8jYCKLwpFQ9iNHCmzWec3I7jte4YDS',
-  'LAB_EMPLOYEE',
-  (SELECT e.id FROM empleados e JOIN contactos c ON e.contacto_id = c.id WHERE c.email = 'matias.carrasco@centrodiagnosticopacifico.cl')
+  'EMPLOYEE',
+  (SELECT e.id FROM empleados e JOIN contactos c ON e.contacto_id = c.id WHERE c.email = 'matias.carrasco@cdpacifico.cl')
 );
 
 -- Usuarios PACIENTES
