@@ -3,6 +3,7 @@ import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 /**
  * Interceptor HTTP para manejar automáticamente:
@@ -16,17 +17,11 @@ import { Router } from '@angular/router';
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authService: AuthService) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Obtener el token de sessionStorage
-    const token = sessionStorage.getItem('token');
-    
-    console.log('🔍 Interceptor:', req.url);
-    console.log('🔍 Token presente:', !!token);
-    if (token) {
-      console.log('🔍 Token (primeros 20 chars):', token.substring(0, 20));
-    }
+    // Obtener el token del AuthService
+    const token = this.authService.getToken();
 
     // Clonar la petición y agregar el token si existe
     let authReq = req;
@@ -36,9 +31,6 @@ export class AuthInterceptor implements HttpInterceptor {
           Authorization: `Bearer ${token}`
         }
       });
-      console.log('✅ Header Authorization agregado');
-    } else {
-      console.log('❌ No hay token, petición sin autenticación');
     }
 
     // Enviar la petición y manejar errores
@@ -46,7 +38,6 @@ export class AuthInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
         // Si recibimos un 401, el token expiró o es inválido
         if (error.status === 401) {
-          console.log('❌ Interceptor: Error 401, limpiando sesión y redirigiendo al login');
           console.log('❌ URL que causó el error:', error.url);
           console.log('❌ Método:', req.method);
           

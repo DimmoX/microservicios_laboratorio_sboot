@@ -136,10 +136,10 @@ export class AuthService {
 
   /**
    * Cambiar contraseña (para contraseñas temporales)
-   * Endpoint: POST /change-password
+   * Endpoint: POST /auth/change-password
    */
   changePassword(oldPassword: string, newPassword: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/change-password`, {
+    return this.http.post<any>(`${this.apiUrl}/auth/change-password`, {
       oldPassword,
       newPassword
     });
