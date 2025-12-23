@@ -17,6 +17,7 @@ import java.util.Map;
 public class ExamenController {
 
     private static final Logger logger = LoggerFactory.getLogger(ExamenController.class);
+    private static final String DESCRIPTION_KEY = "description";
     private final ExamenService service;
     
     public ExamenController(ExamenService service) { 
@@ -34,7 +35,7 @@ public class ExamenController {
             logger.info("Se encontraron {} exámenes", exams.size());
             
             response.put("code", "000");
-            response.put("description", "Exámenes obtenidos exitosamente");
+            response.put(DESCRIPTION_KEY, "Exámenes obtenidos exitosamente");
             response.put("data", exams);
             
             return ResponseEntity.ok(response);
@@ -43,7 +44,7 @@ public class ExamenController {
             logger.error("Error al obtener exámenes: {}", e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al obtener exámenes");
+            response.put(DESCRIPTION_KEY, "Error al obtener exámenes");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -61,7 +62,7 @@ public class ExamenController {
             logger.info("Examen con ID: {} encontrado", id);
             
             response.put("code", "000");
-            response.put("description", "Examen obtenido exitosamente");
+            response.put(DESCRIPTION_KEY, "Examen obtenido exitosamente");
             response.put("data", exam);
             
             return ResponseEntity.ok(response);
@@ -70,7 +71,7 @@ public class ExamenController {
             logger.error("Error al obtener examen con ID: {}: {}", id, e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al obtener examen con ID: " + id);
+            response.put(DESCRIPTION_KEY, "Error al obtener examen con ID: " + id);
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -88,7 +89,7 @@ public class ExamenController {
             logger.info("Examen creado exitosamente con ID: {}", created.getId());
             
             response.put("code", "000");
-            response.put("description", "Examen creado exitosamente");
+            response.put(DESCRIPTION_KEY, "Examen creado exitosamente");
             response.put("data", created);
             
             return ResponseEntity.ok(response);
@@ -97,7 +98,7 @@ public class ExamenController {
             logger.error("Error al crear examen: {}", e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al crear examen");
+            response.put(DESCRIPTION_KEY, "Error al crear examen");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -115,7 +116,7 @@ public class ExamenController {
             logger.info("Examen con ID: {} actualizado exitosamente", id);
             
             response.put("code", "000");
-            response.put("description", "Examen actualizado exitosamente");
+            response.put(DESCRIPTION_KEY, "Examen actualizado exitosamente");
             response.put("data", updated);
             
             return ResponseEntity.ok(response);
@@ -124,7 +125,7 @@ public class ExamenController {
             logger.error("Error al actualizar examen con ID: {}: {}", id, e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al actualizar examen con ID: " + id);
+            response.put(DESCRIPTION_KEY, "Error al actualizar examen con ID: " + id);
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -142,7 +143,7 @@ public class ExamenController {
             logger.info("Examen con ID: {} eliminado exitosamente", id);
             
             response.put("code", "000");
-            response.put("description", "Examen eliminado exitosamente");
+            response.put(DESCRIPTION_KEY, "Examen eliminado exitosamente");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.ok(response);
@@ -151,7 +152,7 @@ public class ExamenController {
             logger.error("Error al eliminar examen con ID: {}: {}", id, e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al eliminar examen con ID: " + id);
+            response.put(DESCRIPTION_KEY, "Error al eliminar examen con ID: " + id);
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);

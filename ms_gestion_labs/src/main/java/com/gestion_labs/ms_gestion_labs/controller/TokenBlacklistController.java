@@ -22,6 +22,7 @@ import java.util.Map;
 public class TokenBlacklistController {
 
     private static final Logger logger = LoggerFactory.getLogger(TokenBlacklistController.class);
+    private static final String DESCRIPTION_KEY = "description";
     private final TokenBlacklistService blacklistService;
 
     public TokenBlacklistController(TokenBlacklistService blacklistService) {
@@ -44,7 +45,7 @@ public class TokenBlacklistController {
             
             if (token == null || token.isEmpty()) {
                 response.put("code", "001");
-                response.put("description", "Token es requerido");
+                response.put(DESCRIPTION_KEY, "Token es requerido");
                 response.put("data", new LinkedHashMap<>());
                 return ResponseEntity.badRequest().body(response);
             }
@@ -57,7 +58,7 @@ public class TokenBlacklistController {
             data.put("blacklistSize", blacklistService.size());
             
             response.put("code", "000");
-            response.put("description", "Token blacklisted exitosamente");
+            response.put(DESCRIPTION_KEY, "Token blacklisted exitosamente");
             response.put("data", data);
             
             return ResponseEntity.ok(response);
@@ -66,7 +67,7 @@ public class TokenBlacklistController {
             logger.error("Error agregando token a blacklist: {}", e.getMessage());
             
             response.put("code", "002");
-            response.put("description", "Error al agregar token a blacklist");
+            response.put(DESCRIPTION_KEY, "Error al agregar token a blacklist");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -86,7 +87,7 @@ public class TokenBlacklistController {
         data.put("blacklistSize", blacklistService.size());
         
         response.put("code", "000");
-        response.put("description", "Tamaño de blacklist obtenido");
+        response.put(DESCRIPTION_KEY, "Tamaño de blacklist obtenido");
         response.put("data", data);
         
         return ResponseEntity.ok(response);

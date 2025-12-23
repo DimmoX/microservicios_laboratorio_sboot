@@ -12,6 +12,7 @@ import org.springframework.context.event.EventListener;
 public class MsGestionLabsApplication {
 
 	private static final Logger logger = LoggerFactory.getLogger(MsGestionLabsApplication.class);
+	private static final String BANNER_SEPARATOR = "║                                                                ║";
 
 	@Value("${server.port:8081}")
 	private String port;
@@ -25,12 +26,12 @@ public class MsGestionLabsApplication {
 		logger.info("╔════════════════════════════════════════════════════════════════╗");
 		logger.info("║  🚀 Microservicio GESTIÓN DE LABORATORIOS iniciado exitosamente║");
 		logger.info("║  📡 Puerto interno: {}                                      ║", port);
-		logger.info("║  �️  Detrás del API Gateway (puerto 8080)                      ║");
-		logger.info("║                                                                ║");
+		logger.info("║  ☁️  Detrás del API Gateway (puerto 8080)                      ║");
+		logger.info(BANNER_SEPARATOR);
 		logger.info("║  ⚠️  IMPORTANTE: Este servicio NO valida JWT                   ║");
 		logger.info("║     La autenticación la maneja el API Gateway                  ║");
 		logger.info("║     Headers recibidos: X-User-Id, X-User-Role                  ║");
-		logger.info("║                                                                ║");
+		logger.info(BANNER_SEPARATOR);
 		logger.info("║  📚 Endpoints disponibles:                                     ║");
 		logger.info("║     - GET    /labs                (Listar laboratorios)        ║");
 		logger.info("║     - GET    /labs/{id}           (Ver detalle laboratorio)    ║");
@@ -43,7 +44,7 @@ public class MsGestionLabsApplication {
 		logger.info("║     - POST   /agendas             (Crear agenda)               ║");
 		logger.info("║     - GET    /results             (Listar resultados)          ║");
 		logger.info("║     - POST   /results             (Crear resultado)            ║");
-		logger.info("║                                                                ║");
+		logger.info(BANNER_SEPARATOR);
 		logger.info("║  🔐 Acceso SOLO vía API Gateway: http://localhost:8080         ║");
 		logger.info("╚════════════════════════════════════════════════════════════════╝");
 	}

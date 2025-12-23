@@ -33,6 +33,12 @@ import com.gestion_labs.ms_gestion_labs.service.laboratorio.LaboratorioService;
 public class LabExamController {
 
     private static final Logger logger = LoggerFactory.getLogger(LabExamController.class);
+    private static final String DESCRIPTION_KEY = "description";
+    private static final String ID_LABORATORIO_KEY = "idLaboratorio";
+    private static final String ID_EXAMEN_KEY = "idExamen";
+    private static final String VIGENTE_DESDE_KEY = "vigenteDesde";
+    private static final String VIGENTE_HASTA_KEY = "vigenteHasta";
+    
     private final LabExamService service;
     private final LaboratorioService laboratorioService;
     private final ExamenService examenService;
@@ -62,19 +68,8 @@ public class LabExamController {
                 dto.setVigenteHasta(labExam.getVigenteHasta());
                 
                 // Obtener nombres
-                try {
-                    LaboratorioDTO lab = laboratorioService.findById(labExam.getId().getIdLaboratorio());
-                    dto.setNombreLab(lab.getNombre());
-                } catch (Exception e) {
-                    dto.setNombreLab("Laboratorio no encontrado");
-                }
-                
-                try {
-                    ExamenModel examen = examenService.findById(labExam.getId().getIdExamen());
-                    dto.setNombreExamen(examen.getNombre());
-                } catch (Exception e) {
-                    dto.setNombreExamen("Examen no encontrado");
-                }
+                setNombreLaboratorio(dto, labExam.getId().getIdLaboratorio());
+                setNombreExamen(dto, labExam.getId().getIdExamen());
                 
                 labExamDTOs.add(dto);
             }
@@ -82,7 +77,7 @@ public class LabExamController {
             logger.info("Se encontraron {} relaciones laboratorio-examen", labExamDTOs.size());
             
             response.put("code", "000");
-            response.put("description", "Relaciones laboratorio-examen obtenidas exitosamente");
+            response.put(DESCRIPTION_KEY, "Relaciones laboratorio-examen obtenidas exitosamente");
             response.put("data", labExamDTOs);
             
             return ResponseEntity.ok(response);
@@ -91,7 +86,7 @@ public class LabExamController {
             logger.error("Error al obtener relaciones laboratorio-examen: {}", e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al obtener relaciones laboratorio-examen");
+            response.put(DESCRIPTION_KEY, "Error al obtener relaciones laboratorio-examen");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -109,7 +104,7 @@ public class LabExamController {
             logger.info("Se encontraron {} exámenes para laboratorio ID: {}", labExams.size(), labId);
             
             response.put("code", "000");
-            response.put("description", "Exámenes del laboratorio obtenidos exitosamente");
+            response.put(DESCRIPTION_KEY, "Exámenes del laboratorio obtenidos exitosamente");
             response.put("data", labExams);
             
             return ResponseEntity.ok(response);
@@ -118,7 +113,7 @@ public class LabExamController {
             logger.error("Error al obtener exámenes del laboratorio {}: {}", labId, e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al obtener exámenes del laboratorio");
+            response.put(DESCRIPTION_KEY, "Error al obtener exámenes del laboratorio");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -136,7 +131,7 @@ public class LabExamController {
             logger.info("Se encontraron {} laboratorios para examen ID: {}", labExams.size(), examId);
             
             response.put("code", "000");
-            response.put("description", "Laboratorios que ofrecen el examen obtenidos exitosamente");
+            response.put(DESCRIPTION_KEY, "Laboratorios que ofrecen el examen obtenidos exitosamente");
             response.put("data", labExams);
             
             return ResponseEntity.ok(response);
@@ -145,7 +140,7 @@ public class LabExamController {
             logger.error("Error al obtener laboratorios del examen {}: {}", examId, e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al obtener laboratorios del examen");
+            response.put(DESCRIPTION_KEY, "Error al obtener laboratorios del examen");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -163,7 +158,7 @@ public class LabExamController {
             logger.info("Relación laboratorio {} - examen {} encontrada", labId, examId);
             
             response.put("code", "000");
-            response.put("description", "Relación laboratorio-examen obtenida exitosamente");
+            response.put(DESCRIPTION_KEY, "Relación laboratorio-examen obtenida exitosamente");
             response.put("data", labExam);
             
             return ResponseEntity.ok(response);
@@ -172,7 +167,7 @@ public class LabExamController {
             logger.error("Error al obtener relación lab {} - exam {}: {}", labId, examId, e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al obtener relación laboratorio-examen");
+            response.put(DESCRIPTION_KEY, "Error al obtener relación laboratorio-examen");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -191,12 +186,12 @@ public class LabExamController {
             // Soportar dos formatos: con id anidado o con idLaboratorio/idExamen directos
             if (payload.containsKey("id") && payload.get("id") instanceof Map) {
                 Map<String, Object> idMap = (Map<String, Object>) payload.get("id");
-                Long labId = getLongFromMap(idMap, "idLaboratorio");
-                Long examId = getLongFromMap(idMap, "idExamen");
+                Long labId = getLongFromMap(idMap, ID_LABORATORIO_KEY);
+                Long examId = getLongFromMap(idMap, ID_EXAMEN_KEY);
                 m.setId(new LabExamKey(labId, examId));
-            } else if (payload.containsKey("idLaboratorio") && payload.containsKey("idExamen")) {
-                Long labId = getLongFromMap(payload, "idLaboratorio");
-                Long examId = getLongFromMap(payload, "idExamen");
+            } else if (payload.containsKey(ID_LABORATORIO_KEY) && payload.containsKey(ID_EXAMEN_KEY)) {
+                Long labId = getLongFromMap(payload, ID_LABORATORIO_KEY);
+                Long examId = getLongFromMap(payload, ID_EXAMEN_KEY);
                 m.setId(new LabExamKey(labId, examId));
             } else {
                 throw new RuntimeException("Debe enviar id (idLaboratorio, idExamen)");
@@ -211,18 +206,18 @@ public class LabExamController {
             }
             
             // Mapear fechas vigentes
-            if (payload.containsKey("vigenteDesde") && payload.get("vigenteDesde") != null) {
-                m.setVigenteDesde(LocalDate.parse(payload.get("vigenteDesde").toString()));
+            if (payload.containsKey(VIGENTE_DESDE_KEY) && payload.get(VIGENTE_DESDE_KEY) != null) {
+                m.setVigenteDesde(LocalDate.parse(payload.get(VIGENTE_DESDE_KEY).toString()));
             }
-            if (payload.containsKey("vigenteHasta") && payload.get("vigenteHasta") != null) {
-                m.setVigenteHasta(LocalDate.parse(payload.get("vigenteHasta").toString()));
+            if (payload.containsKey(VIGENTE_HASTA_KEY) && payload.get(VIGENTE_HASTA_KEY) != null) {
+                m.setVigenteHasta(LocalDate.parse(payload.get(VIGENTE_HASTA_KEY).toString()));
             }
             
             LabExamModel saved = service.upsert(m);
             logger.info("Relación laboratorio-examen guardada exitosamente");
             
             response.put("code", "000");
-            response.put("description", "Relación laboratorio-examen guardada exitosamente");
+            response.put(DESCRIPTION_KEY, "Relación laboratorio-examen guardada exitosamente");
             response.put("data", saved);
             
             return ResponseEntity.ok(response);
@@ -231,7 +226,7 @@ public class LabExamController {
             logger.error("Error al guardar relación laboratorio-examen: {}", e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al guardar relación laboratorio-examen: " + e.getMessage());
+            response.put(DESCRIPTION_KEY, "Error al guardar relación laboratorio-examen: " + e.getMessage());
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -250,7 +245,7 @@ public class LabExamController {
             logger.info("Relación lab {} - exam {} actualizada exitosamente", labId, examId);
             
             response.put("code", "000");
-            response.put("description", "Relación laboratorio-examen actualizada exitosamente");
+            response.put(DESCRIPTION_KEY, "Relación laboratorio-examen actualizada exitosamente");
             response.put("data", updated);
             
             return ResponseEntity.ok(response);
@@ -259,7 +254,7 @@ public class LabExamController {
             logger.error("Error al actualizar relación lab {} - exam {}: {}", labId, examId, e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al actualizar relación laboratorio-examen");
+            response.put(DESCRIPTION_KEY, "Error al actualizar relación laboratorio-examen");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -277,7 +272,7 @@ public class LabExamController {
             logger.info("Relación lab {} - exam {} eliminada exitosamente", labId, examId);
             
             response.put("code", "000");
-            response.put("description", "Relación laboratorio-examen eliminada exitosamente");
+            response.put(DESCRIPTION_KEY, "Relación laboratorio-examen eliminada exitosamente");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.ok(response);
@@ -286,7 +281,7 @@ public class LabExamController {
             logger.error("Error al eliminar relación lab {} - exam {}: {}", labId, examId, e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al eliminar relación laboratorio-examen");
+            response.put(DESCRIPTION_KEY, "Error al eliminar relación laboratorio-examen");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -306,5 +301,23 @@ public class LabExamController {
             return Long.parseLong((String) value);
         }
         throw new IllegalArgumentException("No se puede convertir " + value.getClass() + " a Long");
+    }
+
+    private void setNombreLaboratorio(LabExamDTO dto, Long laboratorioId) {
+        try {
+            LaboratorioDTO lab = laboratorioService.findById(laboratorioId);
+            dto.setNombreLab(lab.getNombre());
+        } catch (Exception e) {
+            dto.setNombreLab("Laboratorio no encontrado");
+        }
+    }
+
+    private void setNombreExamen(LabExamDTO dto, Long examenId) {
+        try {
+            ExamenModel examen = examenService.findById(examenId);
+            dto.setNombreExamen(examen.getNombre());
+        } catch (Exception e) {
+            dto.setNombreExamen("Examen no encontrado");
+        }
     }
 }

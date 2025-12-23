@@ -25,6 +25,7 @@ import com.gestion_labs.ms_gestion_labs.service.agenda.AgendaService;
 public class AgendaController {
 
     private static final Logger logger = LoggerFactory.getLogger(AgendaController.class);
+    private static final String DESCRIPTION_KEY = "description";
     private final AgendaService service;
     
     public AgendaController(AgendaService service) { 
@@ -46,7 +47,7 @@ public class AgendaController {
             logger.info("Se encontraron {} agendas de exámenes", agendas.size());
             
             response.put("code", "000");
-            response.put("description", "Agendas de exámenes obtenidas exitosamente");
+            response.put(DESCRIPTION_KEY, "Agendas de exámenes obtenidas exitosamente");
             response.put("data", agendas);
             
             return ResponseEntity.ok(response);
@@ -55,7 +56,7 @@ public class AgendaController {
             logger.error("Error al obtener agendas de exámenes: {}", e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al obtener agendas de exámenes");
+            response.put(DESCRIPTION_KEY, "Error al obtener agendas de exámenes");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -77,7 +78,7 @@ public class AgendaController {
             logger.info("Agenda de examen con ID: {} encontrada", id);
             
             response.put("code", "000");
-            response.put("description", "Agenda de examen obtenida exitosamente");
+            response.put(DESCRIPTION_KEY, "Agenda de examen obtenida exitosamente");
             response.put("data", agenda);
             
             return ResponseEntity.ok(response);
@@ -86,7 +87,7 @@ public class AgendaController {
             logger.error("Error al obtener agenda de examen con ID: {}: {}", id, e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al obtener agenda de examen con ID: " + id);
+            response.put(DESCRIPTION_KEY, "Error al obtener agenda de examen con ID: " + id);
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -111,7 +112,7 @@ public class AgendaController {
             logger.info("Se encontraron {} agendas para paciente ID: {}", agendas.size(), pacienteId);
             
             response.put("code", "000");
-            response.put("description", "Agendas de exámenes del paciente obtenidas exitosamente");
+            response.put(DESCRIPTION_KEY, "Agendas de exámenes del paciente obtenidas exitosamente");
             response.put("data", agendas);
             
             return ResponseEntity.ok(response);
@@ -120,7 +121,7 @@ public class AgendaController {
             logger.error("Error al obtener agendas del paciente {}: {}", pacienteId, e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al obtener agendas del paciente");
+            response.put(DESCRIPTION_KEY, "Error al obtener agendas del paciente");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -145,7 +146,7 @@ public class AgendaController {
             logger.info("Agenda de examen creada exitosamente con ID: {}", created.getId());
             
             response.put("code", "000");
-            response.put("description", "Agenda de examen creada exitosamente");
+            response.put(DESCRIPTION_KEY, "Agenda de examen creada exitosamente");
             response.put("data", created);
             
             return ResponseEntity.ok(response);
@@ -154,7 +155,7 @@ public class AgendaController {
             logger.error("Error al crear agenda de examen: {}", e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al crear agenda de examen");
+            response.put(DESCRIPTION_KEY, "Error al crear agenda de examen");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -178,7 +179,7 @@ public class AgendaController {
                 logger.info("Fecha/hora de agenda con ID: {} actualizada exitosamente", id);
                 
                 response.put("code", "000");
-                response.put("description", "Fecha/hora actualizada exitosamente");
+                response.put(DESCRIPTION_KEY, "Fecha/hora actualizada exitosamente");
                 response.put("data", updated);
                 
                 return ResponseEntity.ok(response);
@@ -189,7 +190,7 @@ public class AgendaController {
             logger.info("Agenda de examen con ID: {} actualizada exitosamente", id);
             
             response.put("code", "000");
-            response.put("description", "Agenda de examen actualizada exitosamente");
+            response.put(DESCRIPTION_KEY, "Agenda de examen actualizada exitosamente");
             response.put("data", updated);
             
             return ResponseEntity.ok(response);
@@ -198,7 +199,7 @@ public class AgendaController {
             logger.error("Error al actualizar agenda de examen con ID: {}: {}", id, e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al actualizar agenda de examen con ID: " + id);
+            response.put(DESCRIPTION_KEY, "Error al actualizar agenda de examen con ID: " + id);
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -221,7 +222,7 @@ public class AgendaController {
             logger.info("Agenda de examen con ID: {} cancelada exitosamente", id);
             
             response.put("code", "000");
-            response.put("description", "Agenda de examen cancelada exitosamente");
+            response.put(DESCRIPTION_KEY, "Agenda de examen cancelada exitosamente");
             response.put("data", cancelled);
             
             return ResponseEntity.ok(response);
@@ -230,7 +231,7 @@ public class AgendaController {
             logger.error("Error al cancelar agenda de examen con ID: {}: {}", id, e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al cancelar agenda de examen con ID: " + id);
+            response.put(DESCRIPTION_KEY, "Error al cancelar agenda de examen con ID: " + id);
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -252,7 +253,7 @@ public class AgendaController {
             logger.info("Agenda de examen con ID: {} eliminada exitosamente", id);
             
             response.put("code", "000");
-            response.put("description", "Agenda de examen eliminada exitosamente");
+            response.put(DESCRIPTION_KEY, "Agenda de examen eliminada exitosamente");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.ok(response);
@@ -261,7 +262,7 @@ public class AgendaController {
             logger.error("Error al eliminar agenda de examen con ID: {}: {}", id, e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al eliminar agenda de examen con ID: " + id);
+            response.put(DESCRIPTION_KEY, "Error al eliminar agenda de examen con ID: " + id);
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);

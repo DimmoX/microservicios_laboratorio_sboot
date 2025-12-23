@@ -28,7 +28,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final JwtProperties jwtProperties;
     private final TokenBlacklistService blacklistService;
 
@@ -48,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             
             // Verificar si el token está en la blacklist
             if (blacklistService.isBlacklisted(token)) {
-                logger.debug("Token en blacklist rechazado para {}", request.getRequestURI());
+                log.debug("Token en blacklist rechazado para {}", request.getRequestURI());
                 filterChain.doFilter(request, response);
                 return;
             }
@@ -74,7 +74,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (Exception e) {
                 // Token inválido - solo log en DEBUG para no contaminar consola
-                logger.debug("Token JWT inválido para {}: {}", request.getRequestURI(), e.getMessage());
+                log.debug("Token JWT inválido para {}: {}", request.getRequestURI(), e.getMessage());
             }
         }
         

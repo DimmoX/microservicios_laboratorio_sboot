@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class GlobalExceptionHandler {
     // Se crea un logger para manejar logs con excepciones
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final String DESCRIPTION_KEY = "description";
 
    /**
     * Maneja errores de autenticación (401 Unauthorized)
@@ -30,7 +31,7 @@ public class GlobalExceptionHandler {
       
       Map<String, Object> response = new LinkedHashMap<>();
       response.put("code", "401");
-      response.put("description", "Error de autenticación: " + ex.getMessage());
+      response.put(DESCRIPTION_KEY, "Error de autenticación: " + ex.getMessage());
       response.put("data", new LinkedHashMap<>());
       
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
@@ -46,7 +47,7 @@ public class GlobalExceptionHandler {
       
       Map<String, Object> response = new LinkedHashMap<>();
       response.put("code", "403");
-      response.put("description", "No tienes permisos para acceder a este recurso.");
+      response.put(DESCRIPTION_KEY, "No tienes permisos para acceder a este recurso.");
       response.put("data", new LinkedHashMap<>());
       
       return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
@@ -59,7 +60,7 @@ public class GlobalExceptionHandler {
       
       Map<String, Object> response = new LinkedHashMap<>();
       response.put("code", "400");
-      response.put("description", "Error de validación en los datos enviados");
+      response.put(DESCRIPTION_KEY, "Error de validación en los datos enviados");
       
       Map<String, String> errors = new LinkedHashMap<>();
       ex.getBindingResult().getFieldErrors().forEach(error -> {
@@ -77,7 +78,7 @@ public class GlobalExceptionHandler {
       
       Map<String, Object> response = new LinkedHashMap<>();
       response.put("code", "500");
-      response.put("description", "Ocurrió un error: " + ex.getMessage());
+      response.put(DESCRIPTION_KEY, "Ocurrió un error: " + ex.getMessage());
       response.put("data", new LinkedHashMap<>());
       
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
