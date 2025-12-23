@@ -591,4 +591,210 @@ class ResultadoControllerTest {
         assertNotNull(body);
         assertEquals("500", body.get("code"));
     }
+
+    // ============ Tests adicionales para mejorar cobertura ============
+
+    @Test
+    void testGetAllResults_NullAuthentication_ReturnsResults() {
+        // Arrange
+        when(securityContext.getAuthentication()).thenReturn(null);
+        when(request.getHeader("Authorization")).thenReturn("Bearer token123");
+        when(service.findAll()).thenReturn(resultadosList);
+
+        // Act
+        ResponseEntity<Map<String, Object>> response = controller.getAllResults(request);
+
+        // Assert
+        assertEquals(200, response.getStatusCodeValue());
+        verify(service).findAll();
+    }
+
+    @Test
+    void testGetAllResults_RoleWithROLEPrefix_FiltersCorrectly() {
+        // Arrange
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        doReturn(Arrays.asList(
+            new SimpleGrantedAuthority("ROLE_ADMIN"), 
+            new SimpleGrantedAuthority("ADMIN")
+        )).when(authentication).getAuthorities();
+        when(request.getHeader("Authorization")).thenReturn("Bearer token123");
+        when(service.findAll()).thenReturn(resultadosList);
+
+        // Act
+        ResponseEntity<Map<String, Object>> response = controller.getAllResults(request);
+
+        // Assert
+        assertEquals(200, response.getStatusCodeValue());
+        verify(service).findAll();
+    }
+
+    @Test
+    void testGetAllResults_EmptyAuthorities_ReturnsResults() {
+        // Arrange
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        doReturn(Collections.emptyList()).when(authentication).getAuthorities();
+        when(request.getHeader("Authorization")).thenReturn("Bearer token123");
+        when(service.findAll()).thenReturn(resultadosList);
+
+        // Act
+        ResponseEntity<Map<String, Object>> response = controller.getAllResults(request);
+
+        // Assert
+        assertEquals(200, response.getStatusCodeValue());
+        verify(service).findAll();
+    }
+
+    @Test
+    void testGetResultsByPatient_AccessDenied_Returns403_V2() {
+        // Arrange
+        when(service.findByPaciente(10L))
+            .thenThrow(new AccessDeniedException("No puedes ver resultados de otro paciente"));
+
+        // Act
+        ResponseEntity<Map<String, Object>> response = controller.getResultsByPatient(10L);
+
+        // Assert
+        assertEquals(403, response.getStatusCodeValue());
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
+        assertEquals("403", body.get("code"));
+        assertTrue(body.get("description").toString().contains("otro paciente"));
+    }
+
+    @Test
+    void testGetResultsByPatient_GenericException_Returns500() {
+        // Arrange
+        when(service.findByPaciente(10L))
+            .thenThrow(new RuntimeException("Database error"));
+
+        // Act
+        ResponseEntity<Map<String, Object>> response = controller.getResultsByPatient(10L);
+
+        // Assert
+        assertEquals(500, response.getStatusCodeValue());
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
+        assertEquals("500", body.get("code"));
+        assertTrue(body.get("description").toString().contains("Error interno"));
+    }
+
+    @Test
+    void testCreateResult_WithEmpleadoIdInDetails_SetsEmpleadoId() {
+        // Arrange
+        ResultadoExamenModel newResult = new ResultadoExamenModel();
+        newResult.setPacienteId(10L);
+        newResult.setExamenId(5L);
+
+        Map<String, Object> details = Map.of("empleadoId", 123);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("employee1");
+        when(authentication.getDetails()).thenReturn(details);
+        doReturn(Arrays.asList(new SimpleGrantedAuthority("EMPLOYEE"))).when(authentication).getAuthorities();
+        when(service.create(any(ResultadoExamenModel.class))).thenReturn(newResult);
+
+        // Act
+        ResponseEntity<Map<String, Object>> response = controller.createResult(newResult);
+
+        // Assert
+        assertEquals(200, response.getStatusCodeValue());
+        verify(service).create(any(ResultadoExamenModel.class));
+    }
+
+    @Test
+    void testCreateResult_DetailsNotMap_DoesNotSetEmpleadoId() {
+        // Arrange
+        ResultadoExamenModel newResult = new ResultadoExamenModel();
+        newResult.setPacienteId(10L);
+        newResult.setExamenId(5L);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("employee1");
+        when(authentication.getDetails()).thenReturn("not-a-map");
+        doReturn(Arrays.asList(new SimpleGrantedAuthority("EMPLOYEE"))).when(authentication).getAuthorities();
+        when(service.create(any(ResultadoExamenModel.class))).thenReturn(newResult);
+
+        // Act
+        ResponseEntity<Map<String, Object>> response = controller.createResult(newResult);
+
+        // Assert
+        assertEquals(200, response.getStatusCodeValue());
+        verify(service).create(newResult);
+    }
+
+    @Test
+    void testCreateResult_NullEmpleadoIdInDetails_DoesNotSetEmpleadoId() {
+        // Arrange
+        ResultadoExamenModel newResult = new ResultadoExamenModel();
+        newResult.setPacienteId(10L);
+        newResult.setExamenId(5L);
+
+        Map<String, Object> details = Map.of("otherId", 999);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("employee1");
+        when(authentication.getDetails()).thenReturn(details);
+        doReturn(Arrays.asList(new SimpleGrantedAuthority("EMPLOYEE"))).when(authentication).getAuthorities();
+        when(service.create(any(ResultadoExamenModel.class))).thenReturn(newResult);
+
+        // Act
+        ResponseEntity<Map<String, Object>> response = controller.createResult(newResult);
+
+        // Assert
+        assertEquals(200, response.getStatusCodeValue());
+        verify(service).create(newResult);
+    }
+
+    @Test
+    void testUpdateResult_GenericException_Returns400() {
+        // Arrange
+        ResultadoExamenModel updateData = new ResultadoExamenModel();
+        updateData.setValor("Normal");
+
+        when(service.update(1L, updateData))
+            .thenThrow(new NullPointerException("Unexpected null"));
+
+        // Act
+        ResponseEntity<Map<String, Object>> response = controller.updateResult(1L, updateData);
+
+        // Assert
+        assertEquals(400, response.getStatusCodeValue());
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
+        assertEquals("400", body.get("code"));
+    }
+
+    @Test
+    void testGetAllResults_AsLabEmployee_ReturnsAllResults() {
+        // Arrange
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        doReturn(Arrays.asList(new SimpleGrantedAuthority("LAB_EMPLOYEE"))).when(authentication).getAuthorities();
+        when(request.getHeader("Authorization")).thenReturn("Bearer token123");
+        when(service.findAll()).thenReturn(resultadosList);
+
+        // Act
+        ResponseEntity<Map<String, Object>> response = controller.getAllResults(request);
+
+        // Assert
+        assertEquals(200, response.getStatusCodeValue());
+        verify(service).findAll();
+        verify(enrichmentService).enrichResultados(resultadosList, "Bearer token123");
+    }
+
+    @Test
+    void testGetResultsByPatient_Success_ReturnsEmptyList() {
+        // Arrange
+        when(service.findByPaciente(999L)).thenReturn(Collections.emptyList());
+
+        // Act
+        ResponseEntity<Map<String, Object>> response = controller.getResultsByPatient(999L);
+
+        // Assert
+        assertEquals(200, response.getStatusCodeValue());
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
+        assertEquals("000", body.get("code"));
+        assertTrue(body.get("data") instanceof List);
+        assertEquals(0, ((List<?>) body.get("data")).size());
+    }
 }
