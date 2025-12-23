@@ -18,7 +18,9 @@ public class AgendaExamenDTO {
     private BigDecimal precio;
 
     // Constructor vacío
-    public AgendaExamenDTO() {}
+    public AgendaExamenDTO() {
+        // Constructor vacío necesario para deserialización JSON y creación de instancias JPA
+    }
 
     // Getters and Setters
     public Long getId() { return id; }

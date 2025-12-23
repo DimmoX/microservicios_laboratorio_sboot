@@ -12,7 +12,9 @@ public class LabExamDTO {
     private String nombreLab;
     private String nombreExamen;
 
-    public LabExamDTO() {}
+    public LabExamDTO() {
+        // Constructor vacío necesario para deserialización JSON y creación de instancias JPA
+    }
 
     // Getters and Setters
     public Long getIdLaboratorio() { return idLaboratorio; }

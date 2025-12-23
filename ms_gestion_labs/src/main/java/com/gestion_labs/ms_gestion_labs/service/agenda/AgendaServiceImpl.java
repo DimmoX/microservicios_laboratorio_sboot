@@ -2,11 +2,9 @@ package com.gestion_labs.ms_gestion_labs.service.agenda;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,28 +24,33 @@ import com.gestion_labs.ms_gestion_labs.repository.LaboratorioRepository;
 public class AgendaServiceImpl implements AgendaService {
 
     private static final Logger logger = LoggerFactory.getLogger(AgendaServiceImpl.class);
+    private static final String AGENDA_NOT_FOUND_PREFIX = "Agenda no encontrada: ";
+    private static final String ESTADO_CANCELADA = "CANCELADA";
+    private static final String ESTADO_ATENDIDA = "ATENDIDA";
     
     private final AgendaExamenRepository repo;
-    
-    @Autowired
-    private ExamenRepository examenRepository;
-    
-    @Autowired
-    private LaboratorioRepository laboratorioRepository;
-    
-    @Autowired
-    private LabExamRepository labExamRepository;
-    
-    @Autowired
-    private UsersServiceClient usersServiceClient;
-    
-    public AgendaServiceImpl(AgendaExamenRepository repo) { this.repo = repo; }
+    private final ExamenRepository examenRepository;
+    private final LaboratorioRepository laboratorioRepository;
+    private final LabExamRepository labExamRepository;
+    private final UsersServiceClient usersServiceClient;
+
+    public AgendaServiceImpl(AgendaExamenRepository repo, 
+                              ExamenRepository examenRepository,
+                              LaboratorioRepository laboratorioRepository,
+                              LabExamRepository labExamRepository,
+                              UsersServiceClient usersServiceClient) { 
+        this.repo = repo;
+        this.examenRepository = examenRepository;
+        this.laboratorioRepository = laboratorioRepository;
+        this.labExamRepository = labExamRepository;
+        this.usersServiceClient = usersServiceClient;
+    }
 
     @Override 
     public List<AgendaExamenDTO> findAll() { 
         return repo.findAll().stream()
             .map(this::convertToDTO)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override 
@@ -77,13 +80,13 @@ public class AgendaServiceImpl implements AgendaService {
         
         return repo.findByPacienteId(pacienteId).stream()
             .map(this::convertToDTO)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override 
     public AgendaExamenDTO findById(Long id) {
         AgendaExamenModel model = repo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Agenda no encontrada: " + id));
+            .orElseThrow(() -> new RuntimeException(AGENDA_NOT_FOUND_PREFIX + id));
         return convertToDTO(model);
     }
 
@@ -135,7 +138,7 @@ public class AgendaServiceImpl implements AgendaService {
     @Override 
     public AgendaExamenDTO update(Long id, AgendaExamenDTO dto) {
         AgendaExamenModel e = repo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Agenda no encontrada: " + id));
+            .orElseThrow(() -> new RuntimeException(AGENDA_NOT_FOUND_PREFIX + id));
             
         // Actualización parcial: solo actualiza campos no nulos
         if (dto.getPacienteId() != null) e.setPacienteId(dto.getPacienteId());
@@ -152,13 +155,13 @@ public class AgendaServiceImpl implements AgendaService {
     @Override
     public AgendaExamenDTO updateFechaHora(Long id, LocalDateTime nuevaFechaHora) {
         AgendaExamenModel agenda = repo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Agenda no encontrada: " + id));
+            .orElseThrow(() -> new RuntimeException(AGENDA_NOT_FOUND_PREFIX + id));
             
-        if ("ATENDIDA".equals(agenda.getEstado())) {
+        if (ESTADO_ATENDIDA.equals(agenda.getEstado())) {
             throw new RuntimeException("No se puede actualizar una agenda ya atendida");
         }
         
-        if ("CANCELADA".equals(agenda.getEstado())) {
+        if (ESTADO_CANCELADA.equals(agenda.getEstado())) {
             throw new RuntimeException("No se puede actualizar una agenda cancelada");
         }
         
@@ -175,9 +178,9 @@ public class AgendaServiceImpl implements AgendaService {
     @Override
     public AgendaExamenDTO cancelar(Long id) {
         AgendaExamenModel agenda = repo.findById(id)
-            .orElseThrow(() -> new RuntimeException("Agenda no encontrada: " + id));
+            .orElseThrow(() -> new RuntimeException(AGENDA_NOT_FOUND_PREFIX + id));
             
-        if ("ATENDIDA".equals(agenda.getEstado())) {
+        if (ESTADO_ATENDIDA.equals(agenda.getEstado())) {
             throw new RuntimeException("No se puede cancelar una agenda ya atendida");
         }
         

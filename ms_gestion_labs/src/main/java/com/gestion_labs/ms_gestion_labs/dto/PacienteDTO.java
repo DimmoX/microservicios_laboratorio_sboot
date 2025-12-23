@@ -7,7 +7,9 @@ public class PacienteDTO {
     private String papellido;
     private String sapellido;
     
-    public PacienteDTO() {}
+    public PacienteDTO() {
+        // Constructor vacío necesario para deserialización JSON y creación de instancias JPA
+    }
     
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

@@ -1,5 +1,11 @@
 package com.gestion_labs.ms_gestion_labs.service.laboratorio;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.gestion_labs.ms_gestion_labs.dto.LaboratorioDTO;
 import com.gestion_labs.ms_gestion_labs.model.ContactoModel;
 import com.gestion_labs.ms_gestion_labs.model.DireccionModel;
@@ -7,11 +13,6 @@ import com.gestion_labs.ms_gestion_labs.model.LaboratorioModel;
 import com.gestion_labs.ms_gestion_labs.repository.ContactoRepository;
 import com.gestion_labs.ms_gestion_labs.repository.DireccionRepository;
 import com.gestion_labs.ms_gestion_labs.repository.LaboratorioRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class LaboratorioServiceImpl implements LaboratorioService {
@@ -81,32 +82,40 @@ public class LaboratorioServiceImpl implements LaboratorioService {
         
         // Actualizar dirección si viene en el DTO
         if (dto.getDireccion() != null) {
-            DireccionModel direccion = direccionRepo.findById(lab.getDirId())
-                .orElseThrow(() -> new RuntimeException("Dirección no encontrada: " + lab.getDirId()));
-            
-            if (dto.getDireccion().getCalle() != null) direccion.setCalle(dto.getDireccion().getCalle());
-            if (dto.getDireccion().getNumero() != null) direccion.setNumero(dto.getDireccion().getNumero());
-            if (dto.getDireccion().getCiudad() != null) direccion.setCiudad(dto.getDireccion().getCiudad());
-            if (dto.getDireccion().getComuna() != null) direccion.setComuna(dto.getDireccion().getComuna());
-            if (dto.getDireccion().getRegion() != null) direccion.setRegion(dto.getDireccion().getRegion());
-            
-            direccionRepo.save(direccion);
+            updateDireccion(lab.getDirId(), dto.getDireccion());
         }
         
         // Actualizar contacto si viene en el DTO
         if (dto.getContacto() != null) {
-            ContactoModel contacto = contactoRepo.findById(lab.getContactoId())
-                .orElseThrow(() -> new RuntimeException("Contacto no encontrado: " + lab.getContactoId()));
-            
-            if (dto.getContacto().getFono1() != null) contacto.setFono1(dto.getContacto().getFono1());
-            if (dto.getContacto().getFono2() != null) contacto.setFono2(dto.getContacto().getFono2());
-            if (dto.getContacto().getEmail() != null) contacto.setEmail(dto.getContacto().getEmail());
-            
-            contactoRepo.save(contacto);
+            updateContacto(lab.getContactoId(), dto.getContacto());
         }
         
         LaboratorioModel labActualizado = repo.save(lab);
         return convertToDTO(labActualizado);
+    }
+
+    private void updateDireccion(Long direccionId, DireccionModel dtoDir) {
+        DireccionModel direccion = direccionRepo.findById(direccionId)
+            .orElseThrow(() -> new RuntimeException("Dirección no encontrada: " + direccionId));
+        
+        if (dtoDir.getCalle() != null) direccion.setCalle(dtoDir.getCalle());
+        if (dtoDir.getNumero() != null) direccion.setNumero(dtoDir.getNumero());
+        if (dtoDir.getCiudad() != null) direccion.setCiudad(dtoDir.getCiudad());
+        if (dtoDir.getComuna() != null) direccion.setComuna(dtoDir.getComuna());
+        if (dtoDir.getRegion() != null) direccion.setRegion(dtoDir.getRegion());
+        
+        direccionRepo.save(direccion);
+    }
+
+    private void updateContacto(Long contactoId, ContactoModel dtoContacto) {
+        ContactoModel contacto = contactoRepo.findById(contactoId)
+            .orElseThrow(() -> new RuntimeException("Contacto no encontrado: " + contactoId));
+        
+        if (dtoContacto.getFono1() != null) contacto.setFono1(dtoContacto.getFono1());
+        if (dtoContacto.getFono2() != null) contacto.setFono2(dtoContacto.getFono2());
+        if (dtoContacto.getEmail() != null) contacto.setEmail(dtoContacto.getEmail());
+        
+        contactoRepo.save(contacto);
     }
 
     @Override 
