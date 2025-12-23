@@ -18,6 +18,7 @@ import java.util.Map;
 public class LaboratorioController {
 
     private static final Logger logger = LoggerFactory.getLogger(LaboratorioController.class);
+    private static final String DESCRIPTION_KEY = "description";
     private final LaboratorioService service;
     
     public LaboratorioController(LaboratorioService service) { 
@@ -38,7 +39,7 @@ public class LaboratorioController {
             logger.info("Se encontraron {} laboratorios", labs.size());
             
             response.put("code", "000");
-            response.put("description", "Laboratorios obtenidos exitosamente");
+            response.put(DESCRIPTION_KEY, "Laboratorios obtenidos exitosamente");
             response.put("data", labs);
             
             return ResponseEntity.ok(response);
@@ -47,7 +48,7 @@ public class LaboratorioController {
             logger.error("Error al obtener laboratorios: {}", e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al obtener laboratorios");
+            response.put(DESCRIPTION_KEY, "Error al obtener laboratorios");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -68,7 +69,7 @@ public class LaboratorioController {
             logger.info("Laboratorio con ID: {} encontrado", id);
             
             response.put("code", "000");
-            response.put("description", "Laboratorio obtenido exitosamente");
+            response.put(DESCRIPTION_KEY, "Laboratorio obtenido exitosamente");
             response.put("data", lab);
             
             return ResponseEntity.ok(response);
@@ -77,7 +78,7 @@ public class LaboratorioController {
             logger.error("Error al obtener laboratorio con ID: {}: {}", id, e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al obtener laboratorio con ID: " + id);
+            response.put(DESCRIPTION_KEY, "Error al obtener laboratorio con ID: " + id);
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -99,7 +100,7 @@ public class LaboratorioController {
             logger.info("Laboratorio creado exitosamente con ID: {}", created.getId());
             
             response.put("code", "000");
-            response.put("description", "Laboratorio creado exitosamente");
+            response.put(DESCRIPTION_KEY, "Laboratorio creado exitosamente");
             response.put("data", created);
             
             return ResponseEntity.ok(response);
@@ -108,7 +109,7 @@ public class LaboratorioController {
             logger.error("Error al crear laboratorio: {}", e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al crear laboratorio");
+            response.put(DESCRIPTION_KEY, "Error al crear laboratorio");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -130,7 +131,7 @@ public class LaboratorioController {
             logger.info("Laboratorio con ID: {} actualizado exitosamente", id);
             
             response.put("code", "000");
-            response.put("description", "Laboratorio actualizado exitosamente");
+            response.put(DESCRIPTION_KEY, "Laboratorio actualizado exitosamente");
             response.put("data", updated);
             
             return ResponseEntity.ok(response);
@@ -139,7 +140,7 @@ public class LaboratorioController {
             logger.error("Error al actualizar laboratorio con ID: {}: {}", id, e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al actualizar laboratorio con ID: " + id);
+            response.put(DESCRIPTION_KEY, "Error al actualizar laboratorio con ID: " + id);
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);
@@ -161,7 +162,7 @@ public class LaboratorioController {
             logger.info("Laboratorio con ID: {} eliminado exitosamente", id);
             
             response.put("code", "000");
-            response.put("description", "Laboratorio eliminado exitosamente");
+            response.put(DESCRIPTION_KEY, "Laboratorio eliminado exitosamente");
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.ok(response);
@@ -170,7 +171,7 @@ public class LaboratorioController {
             logger.error("Error al eliminar laboratorio con ID: {}: {}", id, e.getMessage(), e);
             
             response.put("code", "001");
-            response.put("description", "Error al eliminar laboratorio con ID: " + id);
+            response.put(DESCRIPTION_KEY, "Error al eliminar laboratorio con ID: " + id);
             response.put("data", new LinkedHashMap<>());
             
             return ResponseEntity.status(500).body(response);

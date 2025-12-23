@@ -32,7 +32,7 @@ describe('ResultadoService', () => {
       valor: '85',
       unidad: 'mg/dL',
       estado: 'PENDIENTE',
-      observacion: null
+      observacion: undefined
     }
   ];
 
@@ -68,7 +68,7 @@ describe('ResultadoService', () => {
   it('should get resultados by paciente id', () => {
     const pacienteId = 10;
     
-    service.getResultadosByPaciente(pacienteId).subscribe(resultados => {
+    service.getResultadosPorPaciente(pacienteId).subscribe((resultados: any) => {
       expect(resultados.length).toBe(2);
       expect(resultados[0].pacienteId).toBe(10);
     });

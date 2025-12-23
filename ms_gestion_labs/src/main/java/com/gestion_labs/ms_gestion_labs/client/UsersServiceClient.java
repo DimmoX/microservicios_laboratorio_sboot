@@ -63,6 +63,7 @@ public class UsersServiceClient {
             }
             
             HttpEntity<String> entity = new HttpEntity<>(headers);
+            @SuppressWarnings("rawtypes")
             ResponseEntity<Map> responseEntity = restTemplate.exchange(
                 url, 
                 HttpMethod.GET, 

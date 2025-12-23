@@ -89,6 +89,7 @@ describe('AuthService', () => {
     expect(service.isAuthenticated()).toBeFalse();
 
     // Con sesión
+    sessionStorage.setItem('token', 'test-token');
     sessionStorage.setItem('current_session', JSON.stringify({ 
       usuario: { id: 1 },
       token: 'test-token',
