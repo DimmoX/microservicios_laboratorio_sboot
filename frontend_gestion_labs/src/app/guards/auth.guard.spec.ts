@@ -1,10 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { AuthGuard } from './auth.guard';
+import { authGuard } from './auth.guard';
 import { AuthService } from '../services/auth.service';
 
-describe('AuthGuard', () => {
-  let guard: AuthGuard;
+describe('authGuard', () => {
   let authService: jasmine.SpyObj<AuthService>;
   let router: jasmine.SpyObj<Router>;
 
@@ -14,33 +13,31 @@ describe('AuthGuard', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        AuthGuard,
         { provide: AuthService, useValue: authSpy },
         { provide: Router, useValue: routerSpy }
       ]
     });
 
-    guard = TestBed.inject(AuthGuard);
     authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   });
 
-  it('should be created', () => {
-    expect(guard).toBeTruthy();
+  it('should be a function', () => {
+    expect(typeof authGuard).toBe('function');
   });
 
-  it('should allow access when authenticated', () => {
+  it('should return true when authenticated', () => {
     authService.isAuthenticated.and.returnValue(true);
     
-    const result = guard.canActivate();
+    const result = TestBed.runInInjectionContext(() => authGuard());
     
     expect(result).toBeTrue();
   });
 
-  it('should deny access when not authenticated', () => {
+  it('should return false when not authenticated', () => {
     authService.isAuthenticated.and.returnValue(false);
     
-    const result = guard.canActivate();
+    const result = TestBed.runInInjectionContext(() => authGuard());
     
     expect(result).toBeFalse();
   });
@@ -48,7 +45,7 @@ describe('AuthGuard', () => {
   it('should redirect to login when not authenticated', () => {
     authService.isAuthenticated.and.returnValue(false);
     
-    guard.canActivate();
+    TestBed.runInInjectionContext(() => authGuard());
     
     expect(router.navigate).toHaveBeenCalledWith(['/login']);
   });
@@ -56,7 +53,7 @@ describe('AuthGuard', () => {
   it('should not redirect when authenticated', () => {
     authService.isAuthenticated.and.returnValue(true);
     
-    guard.canActivate();
+    TestBed.runInInjectionContext(() => authGuard());
     
     expect(router.navigate).not.toHaveBeenCalled();
   });

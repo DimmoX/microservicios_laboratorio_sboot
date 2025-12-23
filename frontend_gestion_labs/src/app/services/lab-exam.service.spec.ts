@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { LabExamService } from './lab-exam.service';
-import { environment } from '../../environments/environment';
+import { LabExam } from '../models/lab-exam.model';
 
 describe('LabExamService', () => {
   let service: LabExamService;
@@ -24,55 +24,59 @@ describe('LabExamService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should get lab exams', () => {
-    const mockExams = [{ id: 1, labId: 1, examenId: 1 }];
-    
+  it('should get all lab-exams', () => {
+    const mockExams: LabExam[] = [
+      { idLaboratorio: 1, idExamen: 1, precio: 15000 }
+    ];
+
     service.getLabExams().subscribe(exams => {
-      expect(exams.length).toBe(1);
+      expect(exams).toEqual(mockExams);
     });
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/lab-exams`);
+    const req = httpMock.expectOne(request => request.url.includes('/lab-exams'));
     expect(req.request.method).toBe('GET');
-    req.flush({ data: mockExams });
+    req.flush({ code: '200', description: 'OK', data: mockExams });
   });
 
-  it('should get lab exam by id', () => {
-    const mockExam = { id: 1, labId: 1, examenId: 1 };
-    
-    service.getLabExamById(1).subscribe(exam => {
-      expect(exam.id).toBe(1);
+  it('should get exams by lab', () => {
+    const mockExams: LabExam[] = [
+      { idLaboratorio: 1, idExamen: 1, precio: 15000 }
+    ];
+
+    service.getExamenesPorLab(1).subscribe(exams => {
+      expect(exams).toEqual(mockExams);
     });
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/lab-exams/1`);
+    const req = httpMock.expectOne(request => request.url.includes('/lab-exams/lab/1'));
     expect(req.request.method).toBe('GET');
-    req.flush({ data: mockExam });
+    req.flush({ code: '200', description: 'OK', data: mockExams });
   });
 
-  it('should create lab exam', () => {
-    const newExam = { labId: 1, examenId: 1 };
-    
-    service.createLabExam(newExam).subscribe();
+  it('should create lab-exam', () => {
+    const newExam: LabExam = { idLaboratorio: 1, idExamen: 1, precio: 15000 };
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/lab-exams`);
+    service.crearLabExam(newExam).subscribe();
+
+    const req = httpMock.expectOne(request => request.url.includes('/lab-exams'));
     expect(req.request.method).toBe('POST');
-    req.flush({ data: newExam });
+    req.flush({ code: '201', description: 'Created', data: newExam });
   });
 
-  it('should update lab exam', () => {
-    const updated = { id: 1, labId: 2, examenId: 2 };
-    
-    service.updateLabExam(1, updated).subscribe();
+  it('should update lab-exam', () => {
+    const updated: LabExam = { idLaboratorio: 1, idExamen: 1, precio: 20000 };
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/lab-exams/1`);
+    service.actualizarLabExam(1, 1, updated).subscribe();
+
+    const req = httpMock.expectOne(request => request.url.includes('/lab-exams/lab/1/exam/1'));
     expect(req.request.method).toBe('PUT');
-    req.flush({ data: updated });
+    req.flush({ code: '200', description: 'OK', data: updated });
   });
 
-  it('should delete lab exam', () => {
-    service.deleteLabExam(1).subscribe();
+  it('should delete lab-exam', () => {
+    service.eliminarLabExam(1, 1).subscribe();
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/lab-exams/1`);
+    const req = httpMock.expectOne(request => request.url.includes('/lab-exams/lab/1/exam/1'));
     expect(req.request.method).toBe('DELETE');
-    req.flush({});
+    req.flush(null);
   });
 });

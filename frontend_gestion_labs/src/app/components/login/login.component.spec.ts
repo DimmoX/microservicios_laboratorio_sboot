@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { LoginComponent } from './login.component';
 import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { SesionActual, Usuario } from '../../models/usuario.model';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -12,57 +12,104 @@ describe('LoginComponent', () => {
   let router: jasmine.SpyObj<Router>;
 
   beforeEach(async () => {
-    const authSpy = jasmine.createSpyObj('AuthService', ['login']);
-    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    const authSpy = jasmine.createSpyObj('AuthService', [
+      'login', 
+      'isAuthenticated', 
+      'requiresPasswordChange'
+    ]);
+    const routerSpy = jasmine.createSpyObj('Router', ['navigate', 'createUrlTree', 'serializeUrl'], {
+      events: of(new NavigationEnd(0, '/', '/'))
+    });
+    routerSpy.createUrlTree.and.returnValue({} as any);
+    routerSpy.serializeUrl.and.returnValue('/');
+    const activatedRouteSpy = jasmine.createSpyObj('ActivatedRoute', [], {
+      snapshot: { params: {} }
+    });
 
     await TestBed.configureTestingModule({
-      imports: [LoginComponent, FormsModule],
+      imports: [LoginComponent],
       providers: [
         { provide: AuthService, useValue: authSpy },
-        { provide: Router, useValue: routerSpy }
+        { provide: Router, useValue: routerSpy },
+        { provide: ActivatedRoute, useValue: activatedRouteSpy }
       ]
     }).compileComponents();
 
     authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+    authService.isAuthenticated.and.returnValue(false);
+    authService.requiresPasswordChange.and.returnValue(false);
+    
     fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should have empty credentials initially', () => {
-    expect(component.credentials.username).toBe('');
-    expect(component.credentials.password).toBe('');
+  it('should initialize with empty loginData', () => {
+    expect(component.loginData.username).toBe('');
+    expect(component.loginData.password).toBe('');
   });
 
   it('should call authService.login on submit', () => {
-    authService.login.and.returnValue(of({ token: 'test-token' }));
-    component.credentials = { username: 'test@test.com', password: 'pass123' };
+    const mockUser: Usuario = { 
+      id: 1, 
+      username: 'test@test.com', 
+      nombre: 'Test', 
+      password: 'pass', 
+      activo: true, 
+      rol: 'USER' 
+    };
+    const mockSession: SesionActual = { 
+      usuario: mockUser, 
+      token: 'test-token', 
+      fechaLogin: new Date() 
+    };
+    authService.login.and.returnValue(of(mockSession));
     
+    component.loginData = { username: 'test@test.com', password: 'pass123' };
     component.onSubmit();
+    fixture.detectChanges();
     
-    expect(authService.login).toHaveBeenCalledWith('test@test.com', 'pass123');
+    expect(authService.login).toHaveBeenCalledWith({ 
+      username: 'test@test.com', 
+      password: 'pass123' 
+    });
   });
 
   it('should navigate to dashboard on successful login', () => {
-    authService.login.and.returnValue(of({ token: 'test-token' }));
-    component.credentials = { username: 'test', password: 'pass' };
+    const mockUser: Usuario = { 
+      id: 1, 
+      username: 'test@test.com', 
+      nombre: 'Test', 
+      password: 'pass', 
+      activo: true, 
+      rol: 'USER' 
+    };
+    const mockSession: SesionActual = { 
+      usuario: mockUser, 
+      token: 'test-token', 
+      fechaLogin: new Date() 
+    };
+    authService.login.and.returnValue(of(mockSession));
     
+    component.loginData = { username: 'test@test.com', password: 'pass123' };
     component.onSubmit();
+    fixture.detectChanges();
     
     expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
   });
 
-  it('should handle login error', () => {
-    authService.login.and.returnValue(throwError(() => new Error('Login failed')));
-    component.credentials = { username: 'test', password: 'wrong' };
+  it('should show error message on failed login', () => {
+    const errorMessage = 'Invalid credentials';
+    authService.login.and.returnValue(throwError(() => ({ message: errorMessage })));
     
+    component.loginData = { username: 'test@test.com', password: 'wrong' };
     component.onSubmit();
+    fixture.detectChanges();
     
-    expect(component.errorMessage).toBeTruthy();
+    expect(component.errorMessage).toBe(errorMessage);
   });
 });

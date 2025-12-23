@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { CitaService } from './cita.service';
-import { environment } from '../../environments/environment';
+import { CitaAgendada, CrearCitaRequest } from '../models/cita.model';
 
 describe('CitaService', () => {
   let service: CitaService;
@@ -24,47 +24,48 @@ describe('CitaService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should get citas', () => {
-    const mockCitas = [{ id: 1, fecha: '2024-01-01' }];
-    
-    service.getCitas().subscribe(citas => {
+  it('should get all citas', () => {
+    const mockCitas: CitaAgendada[] = [
+      { id: 1, pacienteId: 1, labId: 1, laboratorioNombre: 'Lab 1', examenId: 1, examenNombre: 'Examen 1', fechaHora: '2025-12-25T10:00:00', estado: 'PROGRAMADA' }
+    ];
+
+    service.getAllCitas().subscribe(citas => {
       expect(citas).toEqual(mockCitas);
     });
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/citas`);
+    const req = httpMock.expectOne(request => request.url.includes('/agenda'));
     expect(req.request.method).toBe('GET');
-    req.flush({ data: mockCitas });
+    req.flush({ code: '200', description: 'OK', data: mockCitas });
   });
 
   it('should create cita', () => {
-    const newCita = { fecha: '2024-01-01', pacienteId: 1 };
-    
-    service.createCita(newCita).subscribe(cita => {
-      expect(cita).toEqual(newCita);
-    });
+    const newCita: CrearCitaRequest = {
+      pacienteId: 1,
+      labId: 1,
+      examenId: 1,
+      fechaHora: '2025-12-25T10:00:00'
+    };
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/citas`);
+    service.crearCita(newCita).subscribe();
+
+    const req = httpMock.expectOne(request => request.url.includes('/agenda'));
     expect(req.request.method).toBe('POST');
-    req.flush({ data: newCita });
+    req.flush({ code: '201', description: 'Created', data: { ...newCita, id: 1, estado: 'PROGRAMADA' } });
   });
 
-  it('should update cita', () => {
-    const updatedCita = { id: 1, fecha: '2024-01-02' };
-    
-    service.updateCita(1, updatedCita).subscribe(cita => {
-      expect(cita).toEqual(updatedCita);
-    });
+  it('should cancel cita', () => {
+    service.cancelarCita(1).subscribe();
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/citas/1`);
+    const req = httpMock.expectOne(request => request.url.includes('/agenda/1/cancelar'));
     expect(req.request.method).toBe('PUT');
-    req.flush({ data: updatedCita });
+    req.flush({ code: '200', description: 'OK', data: {} });
   });
 
   it('should delete cita', () => {
-    service.deleteCita(1).subscribe();
+    service.eliminarCita(1).subscribe();
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/citas/1`);
+    const req = httpMock.expectOne(request => request.url.includes('/agenda/1'));
     expect(req.request.method).toBe('DELETE');
-    req.flush({});
+    req.flush(null);
   });
 });
