@@ -7,11 +7,13 @@ Sistema de gestión integral para laboratorios clínicos desarrollado con arquit
 ## 📋 Tabla de Contenidos
 
 - [Descripción del Proyecto](#-descripción-del-proyecto)
+- [Inicio Rápido](#-inicio-rápido)
 - [Arquitectura de Microservicios](#️-arquitectura-de-microservicios)
   - [MS_API_GATEWAY](#-ms_api_gateway-puerto-8080)
   - [MS_GESTION_USERS](#-ms_gestion_users-puerto-8083)
   - [MS_GESTION_LABS](#-ms_gestion_labs-puerto-8081)
   - [MS_GESTION_RESULTADOS](#-ms_gestion_resultados-puerto-8082)
+- [Scripts de Automatización](#-scripts-de-automatización)
 - [Arquetipos de Microservicios](#-arquetipos-de-microservicios)
 - [Tecnologías y Dependencias](#-tecnologías-y-dependencias)
 - [Seguridad y Autenticación](#-seguridad-y-autenticación)
@@ -21,9 +23,11 @@ Sistema de gestión integral para laboratorios clínicos desarrollado con arquit
 - [Endpoints de la API](#-endpoints-de-la-api)
 - [Ejemplos de Uso](#-ejemplos-de-uso)
 - [Ejecución del Proyecto](#-ejecución-del-proyecto)
-- [📊 Análisis de Cobertura con SonarQube](#-análisis-de-cobertura-con-sonarqube)
+- [Análisis de Cobertura con SonarQube](#-análisis-de-cobertura-con-sonarqube)
+- [Tests Unitarios](#-tests-unitarios)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
-- [Changelog](#-changelog-diciembre-2024)
+- [Troubleshooting](#-troubleshooting)
+- [Changelog](#-changelog)
 
 ---
 
@@ -53,6 +57,298 @@ El **Sistema de Gestión de Laboratorios Clínicos** permite administrar:
 - 📝 **Validación de datos** completa
 - 🚀 **CORS habilitado** para aplicaciones frontend
 - 🐳 **Docker Compose** para orquestación de contenedores
+
+---
+
+## ⚡ Inicio Rápido
+
+Para ejecutar el sistema completo con **Docker Compose** y **SonarQube**, sigue estos 3 pasos:
+
+### 1️⃣ Iniciar Infraestructura
+
+```bash
+./iniciar-app.sh
+```
+
+**¿Qué hace?**
+- Levanta PostgreSQL para SonarQube
+- Construye y levanta todos los contenedores (Frontend + 4 microservicios Backend)
+- Configura SonarQube (cambia contraseña, genera token, crea 4 proyectos)
+- Todos los servicios quedan disponibles en:
+  - Frontend: http://localhost:4200
+  - API Gateway: http://localhost:8080
+  - SonarQube: http://localhost:9000 (admin / Laboratorios#2025)
+
+### 2️⃣ Ejecutar Análisis de Cobertura
+
+```bash
+./analisis-sonarqube.sh
+```
+
+**¿Qué hace?**
+- Ejecuta tests con cobertura en los 4 microservicios backend (JUnit + JaCoCo)
+- Ejecuta tests con cobertura en el frontend (Karma + Jasmine)
+- Envía los análisis a SonarQube
+- Los reportes quedan disponibles en http://localhost:9000
+
+### 3️⃣ Detener Infraestructura
+
+```bash
+./detener-app.sh
+```
+
+**¿Qué hace?**
+- Detiene todos los contenedores
+- Elimina contenedores, imágenes y volúmenes
+- Limpia la red Docker
+
+> **💡 Nota:** Para más opciones de ejecución (sin Docker, desarrollo local, etc.), consulta la sección [Ejecución del Proyecto](#-ejecución-del-proyecto).
+
+---
+
+## 🚀 Scripts de Automatización
+
+El proyecto incluye **4 scripts bash** para gestionar el ciclo de vida completo del sistema:
+
+### 📜 Descripción de Scripts
+
+| Script | Descripción | Uso Recomendado |
+|--------|-------------|-----------------|
+| **iniciar-app.sh** | Inicialización completa de infraestructura | Primera ejecución o después de detener |
+| **analisis-sonarqube.sh** | Tests y análisis de cobertura | Después de cambios en código |
+| **detener-app.sh** | Detención limpia de servicios | Finalizar sesión de trabajo |
+| **limpiar-rebuild.sh** | Limpieza profunda y reconstrucción | Solución de problemas o errores |
+
+---
+
+### 1️⃣ iniciar-app.sh
+
+**Propósito:** Levanta toda la infraestructura con configuración automática de SonarQube.
+
+**Pasos ejecutados:**
+```
+PASO 1: Levantar PostgreSQL para SonarQube
+PASO 2: Levantar todos los servicios (Frontend + Backend + SonarQube)
+PASO 3: Esperar a que SonarQube esté disponible (polling 60 intentos)
+PASO 4: Cambiar contraseña de admin (admin → Laboratorios#2025)
+PASO 5: Generar token dinámico con timestamp único
+        → Guarda token en archivo: .sonar_token
+PASO 6: Crear 4 proyectos backend en SonarQube
+```
+
+**Ejecución:**
+```bash
+chmod +x iniciar-app.sh
+./iniciar-app.sh
+```
+
+**Servicios levantados:**
+- PostgreSQL (base de datos para SonarQube)
+- SonarQube Community (http://localhost:9000)
+- Frontend Angular (http://localhost:4200)
+- MS_API_GATEWAY (http://localhost:8080)
+- MS_GESTION_USERS (http://localhost:8083)
+- MS_GESTION_LABS (http://localhost:8081)
+- MS_GESTION_RESULTADOS (http://localhost:8082)
+
+**Salida esperada:**
+```
+✓ Token generado y guardado en .sonar_token
+✓ Proyectos creados en SonarQube:
+  - ms-gestion-labs
+  - ms-gestion-users
+  - ms-gestion-resultados
+  - ms-api-gateway
+
+Acceso a servicios:
+  Frontend:     http://localhost:4200
+  API Gateway:  http://localhost:8080
+  SonarQube:    http://localhost:9000
+  Credenciales: admin / Laboratorios#2025
+```
+
+---
+
+### 2️⃣ analisis-sonarqube.sh
+
+**Propósito:** Ejecuta tests con cobertura y envía análisis a SonarQube.
+
+**Pre-requisito:** Archivo `.sonar_token` (generado por `iniciar-app.sh`)
+
+**Proceso de análisis:**
+```
+1. Verifica existencia de .sonar_token
+2. Backend (cada microservicio):
+   - Ejecuta: mvn clean verify sonar:sonar
+   - Genera reportes JaCoCo (XML/HTML)
+   - Envía análisis a SonarQube
+3. Frontend:
+   - Ejecuta: npm test --code-coverage --watch=false --browsers=ChromeHeadless
+   - Genera reportes LCOV
+   - Ejecuta: sonar-scanner
+   - Envía análisis a SonarQube
+```
+
+**Ejecución:**
+```bash
+chmod +x analisis-sonarqube.sh
+./analisis-sonarqube.sh
+```
+
+**Microservicios analizados:**
+- ✅ ms_api_gateway (13 tests)
+- ✅ ms_gestion_labs (11 tests)
+- ✅ ms_gestion_users (11 tests)
+- ✅ ms_gestion_resultados (9 tests)
+- ✅ frontend_gestion_labs (25 tests)
+
+**Total:** 69 tests unitarios
+
+**Salida esperada:**
+```
+[1/5] Se está generando reporte para: ms_api_gateway
+✓ Análisis completado
+
+[2/5] Se está generando reporte para: ms_gestion_labs
+✓ Análisis completado
+
+[3/5] Se está generando reporte para: ms_gestion_users
+✓ Análisis completado
+
+[4/5] Se está generando reporte para: ms_gestion_resultados
+✓ Análisis completado
+
+[5/5] Se está generando reporte para: frontend_gestion_labs
+✓ Análisis completado
+
+Todos los reportes están listos en: http://localhost:9000
+```
+
+---
+
+### 3️⃣ detener-app.sh
+
+**Propósito:** Detiene y limpia todos los contenedores, imágenes y volúmenes.
+
+**Operaciones realizadas:**
+```
+docker-compose down --rmi all --volumes --remove-orphans
+```
+
+**Elimina:**
+- ✅ Todos los contenedores
+- ✅ Imágenes locales del proyecto
+- ✅ Volúmenes nombrados (sonarqube_data, sonarqube_extensions, sonarqube_logs, postgres_data)
+- ✅ Contenedores huérfanos
+- ✅ Red Docker
+
+**Ejecución:**
+```bash
+chmod +x detener-app.sh
+./detener-app.sh
+```
+
+**Salida esperada:**
+```
+Stopping gestion_labs_api_gateway        ... done
+Stopping gestion_labs_labs_service       ... done
+Stopping gestion_labs_users_service      ... done
+Stopping gestion_labs_resultados_service ... done
+Stopping gestion_labs_frontend           ... done
+Stopping sonarqube                       ... done
+Stopping sonarqube-db                    ... done
+
+Removing containers, images, volumes and networks...
+✓ Limpieza completada
+```
+
+---
+
+### 4️⃣ limpiar-rebuild.sh
+
+**Propósito:** Limpieza profunda y reconstrucción desde cero (troubleshooting).
+
+**Cuándo usar:**
+- 🔧 Errores persistentes en builds
+- 🔧 Problemas de caché de Docker
+- 🔧 Inconsistencias en node_modules o target/
+- 🔧 Cambios mayores en dependencias
+
+**Proceso de 7 pasos:**
+```
+PASO 1: docker-compose down --rmi all --volumes --remove-orphans
+PASO 2: rm -rf frontend_gestion_labs/{dist,.angular,node_modules/.cache}
+PASO 3: rm -rf ms_*/target/ (todos los builds Java)
+PASO 4: docker system prune -f (limpieza de caché Docker)
+PASO 5: cd ms_api_gateway && ./mvnw clean package -DskipTests
+PASO 6: docker-compose build --no-cache (reconstruir sin caché)
+PASO 7: docker-compose up -d (levantar servicios)
+```
+
+**Ejecución:**
+```bash
+chmod +x limpiar-rebuild.sh
+./limpiar-rebuild.sh
+```
+
+**Salida esperada:**
+```
+[1/7] Deteniendo contenedores...
+[2/7] Limpiando builds del frontend...
+[3/7] Limpiando builds de Java...
+[4/7] Limpiando caché de Docker...
+[5/7] Reconstruyendo API Gateway...
+[6/7] Reconstruyendo contenedores SIN caché...
+[7/7] Levantando contenedores...
+
+✓ Limpieza y rebuild completados
+
+IMPORTANTE: Limpia el caché del navegador:
+  - Presiona Ctrl+Shift+R (Cmd+Shift+R en Mac)
+  - O ve a Herramientas de Desarrollador > Application > Clear storage
+```
+
+---
+
+### 📝 Archivo .sonar_token
+
+**Descripción:** Archivo generado automáticamente con el token de SonarQube.
+
+**Ubicación:** Raíz del proyecto
+
+**Contenido:**
+```
+sqa_d69c8e8542843d82a1b5c3f9e4d7a8c6b2f1e0d9
+```
+
+**Características:**
+- 🔑 Token tipo: GLOBAL_ANALYSIS_TOKEN
+- ⏱️ Nombre único: global-token-{timestamp}
+- 🔐 Generado vía API: POST /api/user_tokens/generate
+- ✅ Usado por: analisis-sonarqube.sh
+
+**Importante:**
+- ⚠️ NO subir a git (agregar a .gitignore)
+- ⚠️ Regenerar con cada ejecución de iniciar-app.sh
+- ⚠️ Requerido para analisis-sonarqube.sh
+
+---
+
+### 🔄 Flujo de Trabajo Típico
+
+```bash
+# 1. Primera vez o después de git pull
+./iniciar-app.sh          # Levanta todo + configura SonarQube
+
+# 2. Después de hacer cambios en código
+./analisis-sonarqube.sh   # Tests + cobertura + SonarQube
+
+# 3. Finalizar trabajo del día
+./detener-app.sh          # Detiene todo y limpia
+
+# 4. Solo si hay problemas
+./limpiar-rebuild.sh      # Limpieza profunda + rebuild
+```
 
 ---
 
@@ -768,243 +1064,15 @@ Authorization: Bearer {token}
 
 ## 🗄️ Base de Datos
 
-### Oracle Autonomous Database (OCI)
+Para información completa sobre la estructura, configuración y scripts de base de datos, consulta:
 
-**Configuración:**
-- **Tipo:** Oracle Autonomous Database (19c)
-- **Ubicación:** Oracle Cloud Infrastructure (OCI)
-- **Conexión:** Mediante Oracle Wallet (SSL/TLS)
-- **Pool de conexiones:** Oracle UCP (Universal Connection Pool)
+📘 **[Documentación de Base de Datos](base_de_datos/README_BASE_DE_DATOS.md)**
 
-### Estructura de Tablas
-
-El sistema cuenta con **10 tablas relacionadas**:
-
-```sql
-┌─────────────────┐
-│   CONTACTOS     │
-│─────────────────│
-│ id (PK)         │
-│ fono1           │
-│ fono2           │
-│ email           │
-└─────────────────┘
-        ▲
-        │
-        ├──────────────────┬──────────────────┬────────────────┐
-        │                  │                  │                │
-┌───────┴────────┐  ┌──────┴───────┐  ┌──────┴───────┐  ┌────┴──────────┐
-│   PACIENTES    │  │  EMPLEADOS   │  │ LABORATORIOS │  │  DIRECCIONES  │
-│────────────────│  │──────────────│  │──────────────│  │───────────────│
-│ id (PK)        │  │ id (PK)      │  │ id (PK)      │  │ id (PK)       │
-│ pnombre        │  │ pnombre      │  │ nombre       │  │ calle         │
-│ snombre        │  │ snombre      │  │ tipo         │  │ numero        │
-│ papellido      │  │ papellido    │  │ dir_id (FK)  │  │ ciudad        │
-│ sapellido      │  │ sapellido    │  │ contacto_id  │  │ comuna        │
-│ rut            │  │ rut          │  └──────────────┘  │ region        │
-│ dir_id (FK)    │  │ cargo        │                    └───────────────┘
-│ contacto_id    │  │ dir_id (FK)  │
-│ creado_en      │  │ contacto_id  │
-└───┬────────────┘  │ creado_en    │
-    │               └───┬──────────┘
-    │                   │
-    │ ┌─────────────────┴──────────────────┐
-    │ │            USERS                   │
-    │ │────────────────────────────────────│
-    │ │ id (PK)                            │
-    │ │ username (email único)             │
-    │ │ password (BCrypt hash)             │
-    │ │ role (ADMIN, EMPLEADO, PACIENTE)   │
-    │ │ estado (ACTIVO, INACTIVO)          │
-    │ │ paciente_id (FK, nullable)         │
-    │ │ empleado_id (FK, nullable)         │
-    │ │ creado_en                          │
-    │ └────────────────────────────────────┘
-    │
-    ├────────────────┬────────────────────┐
-    ▼                ▼                    ▼
-┌──────────────┐ ┌───────────────┐  ┌───────────────┐
-│ EXAMENES     │ │ LAB_EXAM      │  │ AGENDA_EXAMEN │
-│──────────────│ │─────────      │  │───────────────│
-│ id (PK)      │ │ id (PK)       │  │ id (PK)       │
-│ codigo       │ │ id_laboratorio│  │ paciente_id   │
-│ nombre       │ │ id_examen     │  │ empleado_id   │
-│ tipo         │ └───────────────┘  │ examen_id     │
-└──────────────┘                    │ fecha         │
-                                    │ estado        │
-                                    │ creado_en     │
-                                    └───────┬───────┘
-                                            │
-                                            ▼
-                                    ┌───────────────────┐
-                                    │ RESULTADO_EXAMEN  │
-                                    │───────────────────│
-                                    │ id (PK)           │
-                                    │ agenda_id (FK)    │
-                                    │ resultado (TEXT)  │
-                                    │ observaciones     │
-                                    │ estado            │
-                                    │ creado_en         │
-                                    └───────────────────┘
-```
-
-### Relaciones y Cascadas
-
-#### Eliminación en Cascada Automática
-
-**Al eliminar un PACIENTE:**
-```
-PACIENTE (eliminado)
-  ├── USERS (eliminado automáticamente)
-  ├── AGENDA_EXAMEN (eliminadas automáticamente)
-  │   └── RESULTADO_EXAMEN (eliminados automáticamente)
-  ├── DIRECCIONES (eliminada automáticamente)
-  └── CONTACTOS (eliminado automáticamente)
-```
-
-**Al eliminar un EMPLEADO:**
-```
-EMPLEADO (eliminado)
-  ├── USERS (eliminado automáticamente)
-  ├── DIRECCIONES (eliminada automáticamente)
-  ├── CONTACTOS (eliminado automáticamente)
-  ├── AGENDA_EXAMEN.empleado_id → NULL (conserva historial)
-  └── RESULTADO_EXAMEN.empleado_id → NULL (conserva historial)
-```
-
-### Secuencias Oracle
-
-```sql
--- 10 secuencias para auto-incremento de PKs
-CREATE SEQUENCE seq_contactos        START WITH 1 INCREMENT BY 1 CACHE 100;
-CREATE SEQUENCE seq_direcciones      START WITH 1 INCREMENT BY 1 CACHE 100;
-CREATE SEQUENCE seq_laboratorios     START WITH 1 INCREMENT BY 1 CACHE 100;
-CREATE SEQUENCE seq_pacientes        START WITH 1 INCREMENT BY 1 CACHE 100;
-CREATE SEQUENCE seq_empleados        START WITH 1 INCREMENT BY 1 CACHE 100;
-CREATE SEQUENCE seq_examenes         START WITH 1 INCREMENT BY 1 CACHE 100;
-CREATE SEQUENCE seq_lab_exam         START WITH 1 INCREMENT BY 1 CACHE 100;
-CREATE SEQUENCE seq_agenda_examen    START WITH 1 INCREMENT BY 1 CACHE 100;
-CREATE SEQUENCE seq_resultado_examen START WITH 1 INCREMENT BY 1 CACHE 100;
-CREATE SEQUENCE seq_users            START WITH 1 INCREMENT BY 1 CACHE 100;
-```
-
----
-
-## ⚙️ Configuración de Conexión
-
-### Wallet de Oracle (OCI)
-
-El proyecto utiliza **Oracle Wallet** para conexión segura a la base de datos en la nube.
-
-**Ubicación del Wallet:**
-```
-/wallet/Wallet_databaseFullStack3/
-├── cwallet.sso
-├── ewallet.p12
-├── ewallet.pem
-├── keystore.jks
-├── ojdbc.properties
-├── README
-├── sqlnet.ora
-├── tnsnames.ora
-└── truststore.jks
-```
-
-### Configuración de `application.properties`
-
-#### MS_GESTION_USERS (8083)
-```properties
-# Puerto
-server.port=8083
-
-# Base de datos Oracle
-spring.datasource.url=jdbc:oracle:thin:@databasefullstack3_high?TNS_ADMIN=/ruta/al/wallet/Wallet_databaseFullStack3
-spring.datasource.username=TU_USUARIO
-spring.datasource.password=TU_PASSWORD
-spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
-
-# JPA/Hibernate
-spring.jpa.hibernate.ddl-auto=none
-spring.jpa.show-sql=false
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.OracleDialect
-spring.jpa.properties.hibernate.format_sql=true
-
-# JWT
-jwt.secret=tu_secreto_super_seguro_de_minimo_512_bits
-jwt.expiration=7200000
-
-# Logging
-logging.level.com.gestion_users=INFO
-```
-
-#### MS_GESTION_LABS (8081)
-```properties
-# Puerto
-server.port=8081
-
-# Base de datos Oracle (misma configuración que ms_gestion_users)
-spring.datasource.url=jdbc:oracle:thin:@databasefullstack3_high?TNS_ADMIN=/ruta/al/wallet/Wallet_databaseFullStack3
-spring.datasource.username=TU_USUARIO
-spring.datasource.password=TU_PASSWORD
-spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
-
-# JPA/Hibernate
-spring.jpa.hibernate.ddl-auto=none
-spring.jpa.show-sql=false
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.OracleDialect
-
-# Logging
-logging.level.com.gestion_labs=INFO
-```
-
-#### MS_GESTION_RESULTADOS (8082)
-```properties
-# Puerto
-server.port=8082
-
-# Base de datos Oracle (misma configuración que otros microservicios)
-spring.datasource.url=jdbc:oracle:thin:@databasefullstack3_high?TNS_ADMIN=/ruta/al/wallet/Wallet_databaseFullStack3
-spring.datasource.username=TU_USUARIO
-spring.datasource.password=TU_PASSWORD
-spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
-
-# JPA/Hibernate
-spring.jpa.hibernate.ddl-auto=none
-spring.jpa.show-sql=false
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.OracleDialect
-
-# URLs de otros microservicios (para enriquecimiento)
-app.services.users=http://localhost:8083
-app.services.labs=http://localhost:8081
-
-# Logging
-logging.level.com.gestion_resultados=INFO
-```
-
-#### MS_API_GATEWAY (8080)
-```properties
-# Puerto
-server.port=8080
-
-# JWT (mismo secreto que ms_gestion_users)
-jwt.secret=tu_secreto_super_seguro_de_minimo_512_bits
-jwt.expiration=7200000
-
-# Servicios (URLs de los microservicios)
-app.services.users=http://localhost:8083
-app.services.labs=http://localhost:8081
-app.services.resultados=http://localhost:8082
-
-# CORS
-spring.cloud.gateway.globalcors.corsConfigurations.[/**].allowedOrigins=*
-spring.cloud.gateway.globalcors.corsConfigurations.[/**].allowedMethods=*
-spring.cloud.gateway.globalcors.corsConfigurations.[/**].allowedHeaders=*
-
-# Logging
-logging.level.com.api_gateway=INFO
-logging.level.org.springframework.cloud.gateway=WARN
-logging.pattern.console=%d{HH:mm:ss} %-5level | %msg%n
-```
+**Resumen:**
+- **Tipo:** Oracle Autonomous Database (19c) en OCI
+- **Conexión:** Oracle Wallet (SSL/TLS)
+- **Tablas:** 10 tablas relacionadas con cascadas automáticas
+- **Secuencias:** Auto-incremento para todas las PKs
 
 ---
 
@@ -1362,54 +1430,93 @@ curl -X POST http://localhost:8080/auth/logout \
 
 ## 🚀 Ejecución del Proyecto
 
-### Prerrequisitos
+### ⚡ Inicio Rápido con Scripts Automatizados
 
-- ✅ **Java 21** instalado
-- ✅ **Maven 3.9+** instalado
+El proyecto incluye scripts que automatizan completamente la inicialización y gestión de la infraestructura:
+
+#### 🟢 1. Iniciar Infraestructura Completa
+
+```bash
+./iniciar-app.sh
+```
+
+**Este script realiza:**
+- ✅ Levanta PostgreSQL para SonarQube
+- ✅ Construye y levanta todos los contenedores Docker (Frontend + 4 Backend)
+- ✅ Espera a que SonarQube esté disponible
+- ✅ Cambia la contraseña de admin en SonarQube
+- ✅ Genera un token global de análisis dinámicamente
+- ✅ Crea 4 proyectos backend en SonarQube
+- ✅ Guarda el token en `.sonar_token` para uso del script de análisis
+
+**Servicios disponibles:**
+```
+Frontend (Angular):    http://localhost:4200
+API Gateway:           http://localhost:8080
+MS Gestion Labs:       http://localhost:8081
+MS Gestion Resultados: http://localhost:8082
+MS Gestion Users:      http://localhost:8083
+SonarQube:             http://localhost:9000
+```
+
+#### 🧪 2. Ejecutar Análisis de Cobertura
+
+```bash
+./analisis-sonarqube.sh
+```
+
+**Este script realiza:**
+- ✅ Lee el token desde `.sonar_token`
+- ✅ Ejecuta tests con cobertura en **4 microservicios backend** (JUnit + JaCoCo)
+- ✅ Ejecuta tests con cobertura en **frontend** (Karma + Jasmine)
+- ✅ Envía análisis a SonarQube para cada proyecto
+
+**Requisito:** Debe ejecutarse **después** de `iniciar-app.sh`
+
+#### 🔴 3. Detener Infraestructura
+
+```bash
+./detener-app.sh
+```
+
+**Este script realiza:**
+- ✅ Detiene todos los contenedores Docker
+- ✅ Elimina contenedores, imágenes y volúmenes
+- ✅ Limpia la red Docker
+
+---
+
+### 📋 Prerrequisitos
+
+- ✅ **Docker & Docker Compose** instalados
+- ✅ **Java 21** (solo si ejecutas fuera de Docker)
+- ✅ **Maven 3.9+** (solo si ejecutas fuera de Docker)
+- ✅ **Node.js 20+** y **npm** (solo para desarrollo del frontend)
 - ✅ **Oracle Wallet** configurado en `/wallet/Wallet_databaseFullStack3/`
-- ✅ **Base de datos Oracle** creada y accesible
+- ✅ **Base de datos Oracle** creada (ver [README_BASE_DE_DATOS.md](README_BASE_DE_DATOS.md))
 
-### Paso 1: Configurar Base de Datos
+---
 
-Ejecuta el script de creación de tablas:
+### 🐳 Ejecución Manual con Docker Compose
 
-```bash
-# Conectar a Oracle SQL Developer o SQLcl
-sql usuario/password@databasefullstack3_high
-
-# Ejecutar script
-@creacion_tablas_sumativa1_fs3.sql
-```
-
-### Paso 2: Crear Usuario Administrador
+Si prefieres ejecutar manualmente:
 
 ```bash
-# Ejecutar script de creación de usuario admin
-@crear_usuario_admin.sql
+# Iniciar servicios
+docker-compose up --build -d
+
+# Ver logs
+docker-compose logs -f
+
+# Detener servicios
+docker-compose down
 ```
 
-**Usuario creado:**
-- Email: `admin@laboratorioandino.cl`
-- Password: `admin123`
-- Role: `ADMIN`
+---
 
-### Paso 3: Configurar Wallets y Properties
+### 💻 Ejecución Manual Sin Docker (Desarrollo)
 
-Actualiza en cada microservicio el archivo `application.properties`:
-
-```properties
-# Actualizar ruta al wallet
-spring.datasource.url=jdbc:oracle:thin:@databasefullstack3_high?TNS_ADMIN=/ruta/completa/al/wallet/Wallet_databaseFullStack3
-
-# Actualizar credenciales
-spring.datasource.username=TU_USUARIO
-spring.datasource.password=TU_PASSWORD
-
-# Actualizar secreto JWT (mismo en Gateway y ms_gestion_users)
-jwt.secret=tu_secreto_super_seguro_de_minimo_512_bits
-```
-
-### Paso 4: Compilar Microservicios
+#### Paso 1: Compilar Microservicios
 
 ```bash
 # Compilar ms_gestion_users
@@ -1420,14 +1527,18 @@ mvn clean install -DskipTests
 cd ../ms_gestion_labs
 mvn clean install -DskipTests
 
+# Compilar ms_gestion_resultados
+cd ../ms_gestion_resultados
+mvn clean install -DskipTests
+
 # Compilar ms_api_gateway
 cd ../ms_api_gateway
 mvn clean install -DskipTests
 ```
 
-### Paso 5: Ejecutar Microservicios
+#### Paso 2: Ejecutar Microservicios
 
-**Opción A: Usando Maven (Desarrollo)**
+**Opción A: Usando Maven**
 
 ```bash
 # Terminal 1 - MS Gestión Users (8083)
@@ -1447,7 +1558,7 @@ cd ms_api_gateway
 mvn spring-boot:run
 ```
 
-**Opción B: Usando JAR (Producción)**
+**Opción B: Usando JAR**
 
 ```bash
 # Terminal 1 - MS Gestión Users (8083)
@@ -1463,17 +1574,40 @@ java -jar ms_gestion_resultados/target/ms_gestion_resultados-0.0.1-SNAPSHOT.jar
 java -jar ms_api_gateway/target/ms_api_gateway-0.0.1-SNAPSHOT.jar
 ```
 
-**Opción C: Usando Docker Compose (Recomendado)**
+#### Paso 3: Ejecutar Frontend
 
 ```bash
-# Iniciar todos los servicios
-docker-compose up -d
+cd frontend_gestion_labs
+npm install
+npm start
+```
 
-# Ver logs
-docker-compose logs -f
+---
 
-# Detener servicios
-docker-compose down
+### ✅ Verificar Ejecución
+
+**Health checks:**
+
+```bash
+# MS Gestión Users
+curl http://localhost:8083/actuator/health
+
+# MS Gestión Labs
+curl http://localhost:8081/actuator/health
+
+# MS Gestión Resultados
+curl http://localhost:8082/actuator/health
+
+# API Gateway
+curl http://localhost:8080/actuator/health
+```
+
+**Probar login:**
+
+```bash
+curl -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin@laboratorioandino.cl","password":"admin123"}'
 ```
 
 ### Paso 6: Verificar Ejecución
@@ -1824,39 +1958,413 @@ El build fallará si la cobertura está por debajo del objetivo.
 
 ---
 
-## 📝 Changelog (Diciembre 2024)
+## 🧪 Tests Unitarios
 
-### 🆕 Versión 3.1 - Integración SonarQube (21 Diciembre 2024)
+El proyecto cuenta con **69 tests unitarios** distribuidos entre backend y frontend, todos con 100% de éxito.
 
-#### ✨ Nuevas Funcionalidades
+### 📊 Resumen de Tests
 
-- 🔍 **SonarQube Community Edition integrado**
-  - Contenedor Docker con PostgreSQL incluido
+| Componente | Tests | Herramientas | Cobertura |
+|------------|-------|--------------|-----------|
+| ms_api_gateway | 13 tests | JUnit 5 + Mockito | JaCoCo |
+| ms_gestion_labs | 11 tests | JUnit 5 + Mockito | JaCoCo |
+| ms_gestion_users | 11 tests | JUnit 5 + Mockito | JaCoCo |
+| ms_gestion_resultados | 9 tests | JUnit 5 + Mockito | JaCoCo |
+| **Total Backend** | **44 tests** | **Spring Boot Test** | **≥80%** |
+| frontend_gestion_labs | 25 tests | Karma + Jasmine | LCOV |
+| **Total General** | **69 tests** | - | **✅** |
+
+### 🔬 Backend Tests (44 tests)
+
+#### 1. MS_API_GATEWAY (13 tests)
+
+**TokenBlacklistServiceTest.java** (7 tests)
+- ✅ Agregar token a blacklist
+- ✅ Verificar si token está blacklisted
+- ✅ Remover token de blacklist
+- ✅ Limpiar toda la blacklist
+- ✅ Obtener tamaño de blacklist
+- ✅ Manejo de tokens nulos/vacíos
+- ✅ Thread-safety con múltiples hilos
+
+**JwtPropertiesTest.java** (6 tests)
+- ✅ Establecer y obtener secreto JWT
+- ✅ Establecer y obtener tiempo de expiración
+- ✅ Manejo de valores nulos
+- ✅ Validación de diferentes longitudes de secreto
+- ✅ Validación de diferentes valores de expiración
+- ✅ Propiedades por defecto
+
+#### 2. MS_GESTION_LABS (11 tests)
+
+**ExamenServiceTest.java** (5 tests)
+- ✅ Listar todos los exámenes
+- ✅ Buscar examen por ID
+- ✅ Crear nuevo examen
+- ✅ Actualizar examen existente
+- ✅ Manejo de examen no encontrado
+
+**LaboratorioServiceTest.java** (6 tests)
+- ✅ Crear laboratorio con dirección y contacto
+- ✅ Buscar laboratorio por ID
+- ✅ Listar todos los laboratorios
+- ✅ Actualizar datos de laboratorio
+- ✅ Eliminar laboratorio
+- ✅ Manejo de laboratorio no encontrado
+
+#### 3. MS_GESTION_USERS (11 tests)
+
+**UserServiceTest.java** (5 tests)
+- ✅ Listar todos los usuarios
+- ✅ Buscar usuario por ID
+- ✅ Crear usuario con password encriptado (BCrypt)
+- ✅ Cambiar contraseña
+- ✅ Manejo de usuario no encontrado
+
+**AuthServiceTest.java** (6 tests)
+- ✅ Login exitoso con generación de JWT
+- ✅ Login con usuario no encontrado
+- ✅ Login con contraseña incorrecta
+- ✅ Cambio de contraseña exitoso
+- ✅ Rechazo de cambio con contraseña incorrecta
+- ✅ Validación de formato de token JWT
+
+#### 4. MS_GESTION_RESULTADOS (9 tests)
+
+**ResultadoServiceTest.java** (9 tests)
+- ✅ Listar todos los resultados
+- ✅ Buscar resultado por ID
+- ✅ Buscar resultados por paciente
+- ✅ Crear nuevo resultado
+- ✅ Actualizar resultado
+- ✅ Validación de campos obligatorios
+- ✅ Eliminación de resultado
+- ✅ Manejo de resultado no encontrado
+- ✅ Establecimiento automático de fecha al emitir
+
+### 🌐 Frontend Tests (25 tests)
+
+**auth.service.spec.ts** (5 tests)
+- ✅ Login exitoso con almacenamiento de sesión
+- ✅ Manejo de error 401 (Unauthorized)
+- ✅ Logout con limpieza de sesión
+- ✅ Verificación de estado de autenticación
+- ✅ Registro de paciente
+
+**laboratorio.service.spec.ts** (5 tests)
+- ✅ Obtener todos los laboratorios
+- ✅ Obtener laboratorio por ID
+- ✅ Crear laboratorio
+- ✅ Actualizar laboratorio
+- ✅ Eliminar laboratorio
+
+**examen.service.spec.ts** (5 tests)
+- ✅ Obtener todos los exámenes
+- ✅ Obtener examen por ID
+- ✅ Crear examen
+- ✅ Actualizar examen
+- ✅ Eliminar examen
+
+**paciente.service.spec.ts** (5 tests)
+- ✅ Obtener todos los pacientes
+- ✅ Obtener paciente por ID
+- ✅ Crear paciente
+- ✅ Actualizar paciente
+- ✅ Eliminar paciente
+
+**resultado.service.spec.ts** (5 tests)
+- ✅ Obtener todos los resultados
+- ✅ Obtener resultado por ID
+- ✅ Crear resultado
+- ✅ Actualizar resultado
+- ✅ Eliminar resultado
+
+### 🚀 Ejecutar Tests
+
+**Backend (individual):**
+```bash
+cd ms_api_gateway
+mvn test                          # Solo tests
+mvn clean verify                  # Tests + cobertura JaCoCo
+```
+
+**Frontend:**
+```bash
+cd frontend_gestion_labs
+npm test                          # Tests en watch mode
+npm test -- --watch=false         # Tests una vez
+npm run test:coverage             # Tests + cobertura
+```
+
+**Todos los tests + SonarQube:**
+```bash
+./analisis-sonarqube.sh           # Automatizado
+```
+
+### 📚 Documentación Detallada
+
+Para información completa sobre configuración, comandos avanzados y creación de nuevos tests:
+
+- 📘 **[README_TESTS_COBERTURA.md](README_TESTS_COBERTURA.md)** - Guía completa de tests
+- 📘 **[ANALISIS_TESTS_SONARQUBE.md](ANALISIS_TESTS_SONARQUBE.md)** - Resultados y análisis
+
+---
+
+## 🔧 Troubleshooting
+
+### ❌ Error: "Archivo .sonar_token no encontrado"
+
+**Problema:** El script `analisis-sonarqube.sh` no encuentra el archivo `.sonar_token`
+
+**Solución:**
+```bash
+# Regenerar token ejecutando iniciar-app.sh
+./iniciar-app.sh
+```
+
+El archivo `.sonar_token` se genera automáticamente en el PASO 5 de `iniciar-app.sh`.
+
+---
+
+### ❌ Error: "SonarQube not available after 120 seconds"
+
+**Problema:** SonarQube tarda mucho en iniciar (puede ocurrir en equipos con pocos recursos)
+
+**Soluciones:**
+
+1. **Aumentar tiempo de espera** (editar iniciar-app.sh):
+```bash
+# Cambiar línea 86
+MAX_ATTEMPTS=120  # en lugar de 60
+```
+
+2. **Verificar logs de SonarQube:**
+```bash
+docker logs sonarqube
+```
+
+3. **Verificar recursos de Docker:**
+```bash
+docker stats
+```
+
+**Recomendaciones:**
+- Mínimo 4GB RAM para Docker
+- Cerrar aplicaciones pesadas durante el inicio
+
+---
+
+### ❌ Error: "Tests failing en frontend (RouterLink)"
+
+**Problema:** Tests de Angular fallan con error de RouterLink
+
+**Solución:** Ya corregido en versión actual. Si persiste:
+```bash
+cd frontend_gestion_labs
+rm -rf node_modules package-lock.json
+npm install
+npm test
+```
+
+---
+
+### ❌ Error: "Build falló con código 1"
+
+**Problema:** Errores de compilación en backend
+
+**Solución:**
+```bash
+# Limpieza profunda y rebuild
+./limpiar-rebuild.sh
+```
+
+Este script realiza:
+- Detiene todos los contenedores
+- Limpia caché de frontend (dist, .angular, node_modules/.cache)
+- Limpia targets de Java (mvn clean)
+- Limpia caché de Docker (docker system prune)
+- Reconstruye API Gateway
+- Reconstruye todos los contenedores sin caché
+- Levanta servicios
+
+---
+
+### ❌ Error: "Port already in use"
+
+**Problema:** Uno de los puertos está ocupado (4200, 8080, 8081, 8082, 8083, 9000)
+
+**Solución 1 - Identificar proceso:**
+```bash
+# macOS/Linux
+lsof -i :8080              # Reemplazar con el puerto problemático
+kill -9 <PID>              # Matar proceso
+
+# Detener contenedores existentes
+./detener-app.sh
+```
+
+**Solución 2 - Cambiar puerto:**
+Editar `docker-compose.yml` para cambiar el puerto del servicio afectado.
+
+---
+
+### ❌ Error: "Cannot connect to Oracle Database"
+
+**Problema:** Microservicio no puede conectar a Oracle Autonomous Database
+
+**Verificaciones:**
+
+1. **Wallet configurado correctamente:**
+```bash
+# Verificar que existe wallet en cada microservicio
+ls -la ms_gestion_users/src/main/resources/wallet/
+```
+
+2. **Variables de entorno correctas:**
+```bash
+# Revisar docker-compose.yml
+grep -A5 "environment:" docker-compose.yml
+```
+
+3. **Credenciales válidas:**
+```bash
+# Verificar application.properties
+cat ms_gestion_users/src/main/resources/application.properties | grep oracle
+```
+
+**Documentación completa:** [README_BASE_DE_DATOS.md](README_BASE_DE_DATOS.md)
+
+---
+
+### ❌ Error: "Frontend no carga (ERR_CONNECTION_REFUSED)"
+
+**Problema:** No se puede acceder a http://localhost:4200
+
+**Solución:**
+```bash
+# Verificar estado de contenedores
+docker ps
+
+# Si frontend no está corriendo
+docker logs gestion_labs_frontend
+
+# Reiniciar solo frontend
+docker-compose restart frontend
+```
+
+---
+
+### ❌ Error: "CORS error desde frontend"
+
+**Problema:** Error de CORS al hacer peticiones desde Angular
+
+**Causa:** CORS está configurado en API Gateway (puerto 8080)
+
+**Verificación:**
+```bash
+# Frontend debe apuntar a API Gateway, no a microservicios directamente
+cat frontend_gestion_labs/src/environments/environment.ts
+
+# Debería contener:
+# apiUrl: 'http://localhost:8080'
+```
+
+---
+
+### 🆘 Comandos Útiles
+
+```bash
+# Ver logs de un servicio específico
+docker logs gestion_labs_api_gateway -f
+
+# Ver logs de todos los servicios
+docker-compose logs -f
+
+# Reiniciar un servicio específico
+docker-compose restart api-gateway
+
+# Ver estado de contenedores
+docker ps -a
+
+# Entrar a un contenedor
+docker exec -it gestion_labs_api_gateway bash
+
+# Verificar red Docker
+docker network inspect microservicios_laboratorio_sboot_default
+
+# Limpiar todo Docker (¡CUIDADO! Afecta otros proyectos)
+docker system prune -a --volumes
+```
+
+---
+
+### 📞 Recursos Adicionales
+
+- 📘 [README_DOCKER.md](README_DOCKER.md) - Configuración de Docker
+- 📘 [README_BASE_DE_DATOS.md](README_BASE_DE_DATOS.md) - Base de datos Oracle
+- 📘 [README_TESTS_COBERTURA.md](README_TESTS_COBERTURA.md) - Tests y cobertura
+- 📘 [ANALISIS_TESTS_SONARQUBE.md](ANALISIS_TESTS_SONARQUBE.md) - SonarQube
+
+---
+
+## 📝 Changelog
+
+### ✨ Última Versión - Automatización y Calidad
+
+#### 🚀 Nuevas Funcionalidades
+
+- ✅ **SonarQube Community Edition integrado**
+  - Contenedor Docker con PostgreSQL para persistencia
   - Puerto expuesto: 9000
-  - Configuración lista para usar
+  - Configuración automática vía API
 
-- 📊 **JaCoCo para Backend**
-  - Plugin configurado en todos los microservicios
+- ✅ **Generación dinámica de tokens SonarQube**
+  - Token generado automáticamente con timestamp único
+  - Guardado en archivo `.sonar_token` para reutilización
+  - Cambio automático de contraseña (admin → Laboratorios#2025)
+  - Creación automática de 4 proyectos backend
+
+- ✅ **Scripts de automatización completos**
+  - `iniciar-app.sh`: Inicialización completa (305 líneas, 6 pasos)
+  - `analisis-sonarqube.sh`: Tests y cobertura automatizados (343 líneas)
+  - `detener-app.sh`: Detención limpia de servicios
+  - `limpiar-rebuild.sh`: Limpieza profunda y reconstrucción (7 pasos)
+
+- ✅ **JaCoCo para Backend**
+  - Plugin configurado en los 4 microservicios
   - Generación automática de reportes XML/HTML
   - Verificación de cobertura mínima (80%)
   - Integración con SonarQube Maven Plugin
 
-- 🧪 **Karma/Jasmine para Frontend**
-  - Configuración de cobertura en Angular
+- ✅ **Karma/Jasmine para Frontend**
+  - Configuración de cobertura en Angular 18
   - Generación de reportes LCOV
   - Chrome Headless para CI/CD
   - sonar-scanner para JavaScript/TypeScript
 
-- 🚀 **Scripts de Automatización**
-  - `analisis-sonarqube.sh`: Análisis completo con verificaciones
-  - Permisos de ejecución configurados
+#### 🧪 Tests Implementados
 
-- 📚 **Documentación**
-  - README_SONARQUBE.md con guía completa
-  - Ejemplos de tests unitarios (Backend y Frontend)
-  - Interpretación de métricas
-  - Solución de problemas
-  - Mejores prácticas
+- ✅ **Backend:** 44 tests unitarios distribuidos en:
+  - ms_api_gateway: 13 tests (TokenBlacklist + JwtProperties)
+  - ms_gestion_labs: 11 tests (Exámenes + Laboratorios)
+  - ms_gestion_users: 11 tests (Usuarios + Autenticación)
+  - ms_gestion_resultados: 9 tests (Resultados + Validaciones)
+
+- ✅ **Frontend:** 25 tests unitarios en:
+  - auth.service.spec.ts: 5 tests
+  - laboratorio.service.spec.ts: 5 tests
+  - examen.service.spec.ts: 5 tests
+  - paciente.service.spec.ts: 5 tests
+  - resultado.service.spec.ts: 5 tests
+
+- ✅ **Total:** 69 tests con 100% passing
+
+#### 📊 Análisis de Cobertura
+
+- ✅ Reportes automáticos en cada análisis
+- ✅ Dashboard visual en SonarQube (http://localhost:9000)
+- ✅ Métricas configuradas: líneas, ramas, funciones, sentencias (≥80%)
+- ✅ Build falla si cobertura < objetivo
 
 #### 🔧 Configuraciones Técnicas
 
@@ -1864,42 +2372,74 @@ El build fallará si la cobertura está por debajo del objetivo.
   - jacoco-maven-plugin v0.8.12
   - sonar-maven-plugin v4.0.0.4121
   - Propiedades de SonarQube por microservicio
-  - Exclusiones de cobertura configurables
+  - Exclusiones configurables (DTOs, entidades)
 
 - **Frontend:**
   - karma.conf.js con reportes LCOV
-  - sonar-project.properties
+  - sonar-project.properties personalizado
   - Scripts npm: `test:coverage`, `sonar`
   - sonarqube-scanner v3.3.0
 
 - **Docker Compose:**
-  - Servicio SonarQube con imagen official
+  - Servicio SonarQube (imagen oficial community)
   - PostgreSQL 15 Alpine para persistencia
-  - Volúmenes para datos, extensiones y logs
+  - Volúmenes: datos, extensiones, logs
   - Red compartida con microservicios
 
-#### 📦 Archivos Nuevos
+#### 📚 Documentación Nueva
 
-- `.gitignore`: Exclusiones para coverage, node_modules, target
-- `README_SONARQUBE.md`: Documentación completa de SonarQube
-- `analisis-sonarqube.sh`: Script principal de análisis
-- `frontend_gestion_labs/karma.conf.js`: Configuración de tests
-- `frontend_gestion_labs/sonar-project.properties`: Config SonarQube
+- ✅ **README_BASE_DE_DATOS.md**: Documentación separada de base de datos
+  - 10 tablas con diagramas ASCII
+  - Relaciones y cascadas
+  - Configuración de wallets Oracle
+  - Scripts SQL útiles
 
-#### 🎯 Objetivos de Calidad
+- ✅ **README_TESTS_COBERTURA.md**: Guía completa de tests
+  - Descripción de 69 tests unitarios
+  - Configuración de JaCoCo y Karma
+  - Comandos de ejecución
+  - Interpretación de reportes
 
-- Cobertura mínima: 80% en todos los módulos
-- Reportes automáticos en cada análisis
-- Integración con CI/CD preparada
-- Métricas visibles en SonarQube Dashboard
+- ✅ **ANALISIS_TESTS_SONARQUBE.md**: Análisis detallado
+  - Resultados de tests por microservicio
+  - Métricas de SonarQube
+  - Problemas y soluciones
+  - Mejores prácticas
+
+- ✅ **Sección "Inicio Rápido" en README principal**
+  - 3 pasos claros para ejecutar el sistema
+  - Explicación de qué hace cada script
+  - Enlaces a documentación detallada
+
+- ✅ **Sección "Scripts de Automatización"**
+  - Descripción completa de 4 scripts
+  - Flujo de trabajo típico
+  - Documentación de .sonar_token
+  - Casos de uso y troubleshooting
+
+#### 🐛 Correcciones
+
+- ✅ Eliminación de token hardcodeado en iniciar-app.sh
+- ✅ Eliminación de secciones duplicadas (PASO 4 y 5)
+- ✅ Corrección de tests frontend (RouterLink con createUrlTree y serializeUrl)
+- ✅ Logs silenciados en scripts (Maven y npm)
+- ✅ Corrección de case-sensitive en project keys (Frontend-Gestion-Labs)
+- ✅ Permisos de token elevados a GLOBAL_ANALYSIS_TOKEN
+
+#### 🎯 Mejoras de Experiencia
+
+- ✅ Output limpio en consola (sin logs verbose)
+- ✅ Mensajes descriptivos: "Se está generando reporte para: {servicio}"
+- ✅ Validación de pre-requisitos (.sonar_token file)
+- ✅ Mensajes de éxito/error claros
+- ✅ URLs y credenciales mostradas al finalizar
 
 ---
 
-### 🆕 Versión 3.0 - Semana 8 (14-17 Diciembre 2024)
+### 🆕 Versión 3.0 - Microservicio de Resultados
 
 #### ✨ Nuevas Funcionalidades
 
-**Sábado 14 - Domingo 15:**
 - 🎯 **Creación de MS_GESTION_RESULTADOS**: Microservicio dedicado para gestión de resultados
   - Separación de responsabilidades desde MS_GESTION_LABS
   - Puerto asignado: 8082
@@ -1907,34 +2447,36 @@ El build fallará si la cobertura está por debajo del objetivo.
   - Búsqueda avanzada por paciente, laboratorio, examen
   - RestTemplate para enriquecimiento de datos
 
-**Lunes 16:**
 - 🔧 **Configuración de API Gateway para MS_RESULTADOS**
   - Enrutamiento `/resultados/**` → `http://resultados-service:8082`
   - Propagación de headers: `X-User-Role`, `X-Patient-Id`, `X-Employee-Id`, `X-User-Id`
   - Manejo de peticiones OPTIONS para CORS preflight
+
 - 🐳 **Docker Compose actualizado**
   - Agregado servicio `resultados-service` con puerto 8082
   - Configuración de red compartida entre microservicios
   - Variables de entorno para MS_RESULTADOS
+
 - 🔀 **Eliminación de endpoints de resultados de MS_LABS**
   - Migración completa a MS_GESTION_RESULTADOS
   - Actualización de dependencias entre servicios
 
-**Martes 17:**
-- 📦 **Creación de Arquetipo MS_GESTION_RESULTADOS**
-  - Estructura completa del arquetipo en `arquetipo_backend/ms_gestion_resultados/`
-  - Código fuente reutilizable con todas las capas (Controller, Service, Repository, Model, DTO)
-  - Configuración lista para Oracle Autonomous Database
-  - Dockerfile para despliegue en contenedores
-- 📚 **Documentación del Arquetipo**
-  - ARQUETIPO_BACKEND.md con especificación técnica completa
-  - README.md con guía rápida de endpoints y configuración
-  - GUIA_IMPLEMENTACION.md con implementación paso a paso
-  - .env.example con variables de entorno necesarias
-- 🔐 **Mejoras en Seguridad**
-  - Filtro global mejorado para extracción de claims del JWT
-  - Propagación automática de userId, pacienteId, empleadoId, role como headers HTTP
-  - Validación de roles con `@PreAuthorize` en todos los endpoints
+#### 📦 Arquetipo MS_GESTION_RESULTADOS
+
+- ✅ Estructura completa del arquetipo en `arquetipo_backend/ms_gestion_resultados/`
+- ✅ Código fuente reutilizable con todas las capas (Controller, Service, Repository, Model, DTO)
+- ✅ Configuración lista para Oracle Autonomous Database
+- ✅ Dockerfile para despliegue en contenedores
+- ✅ ARQUETIPO_BACKEND.md con especificación técnica completa
+- ✅ README.md con guía rápida de endpoints y configuración
+- ✅ GUIA_IMPLEMENTACION.md con implementación paso a paso
+- ✅ .env.example con variables de entorno necesarias
+
+#### 🔐 Mejoras en Seguridad
+
+- ✅ Filtro global mejorado para extracción de claims del JWT
+- ✅ Propagación automática de userId, pacienteId, empleadoId, role como headers HTTP
+- ✅ Validación de roles con `@PreAuthorize` en todos los endpoints
 
 #### 🔄 Cambios Estructurales
 
@@ -1970,35 +2512,3 @@ El build fallará si la cobertura está por debajo del objetivo.
 - ⚡ Desacoplamiento de MS_LABS para mejor escalabilidad
 - ⚡ Comunicación entre microservicios mediante RestTemplate
 - ⚡ Enriquecimiento de datos bajo demanda (lazy loading)
-
-#### 📖 Documentación
-
-- 📝 README.md actualizado con:
-  - Arquitectura de 4 microservicios
-  - Sección completa de Arquetipos
-  - Endpoints de MS_GESTION_RESULTADOS
-  - Filtrado contextual por rol
-  - Changelog con cambios recientes
-- 📝 Documentación de arquetipos con ejemplos de uso
-- 📝 Guías de implementación paso a paso
-
----
-
-### 🔜 Próximas Mejoras Planificadas
-
-- [ ] Implementar Circuit Breaker (Resilience4j) para comunicación entre microservicios
-- [ ] Migrar Token Blacklist a Redis para persistencia
-- [ ] Implementar Service Discovery (Eureka)
-- [ ] Agregar métricas con Actuator y Prometheus
-- [ ] Implementar logging centralizado con ELK Stack
-- [x] ✅ **Tests unitarios con cobertura ≥80% (JaCoCo + Karma)**
-- [x] ✅ **Análisis de calidad con SonarQube**
-- [ ] CI/CD con GitHub Actions
-- [ ] Implementar más tests de integración
-- [ ] Agregar mutation testing (PIT)
-
----
-
-**Última actualización:** 21 de Diciembre de 2024  
-**Versión:** 3.1.0  
-**Branch:** S9/EFT
