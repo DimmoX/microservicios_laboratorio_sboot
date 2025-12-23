@@ -16,9 +16,15 @@ dist/
 
 .angular/
 
-# Token de SonarQube (no subir a git)
-.env.sonarqube.local
-
 target/
 
 .devcontainer
+
+resultados_test/
+
+.scannerwork
+
+coverage/
+
+.sonar_token
+
